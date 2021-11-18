@@ -383,7 +383,7 @@ window.onload = function() {
 					let nodes = JSON.parse(localStorage['fsm'])['nodes'];
 					let dharsStart = 0;
 					for (let i = 0; i < nodes.length; i++) {
-						if (currentObject.x === nodes[i]['x'] && currentObject.y === nodes[i]['y']) {
+						if (currentObject.containsPoint(nodes[i]['x'], nodes[i]['y'])) {
 							dharsStart = i;
 						}
 					}
