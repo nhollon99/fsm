@@ -225,14 +225,19 @@ function drawUsing(c) {
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet != null && firingSet.has(i)) {
-			c.fillStyle = c.strokeStyle = 'red';
+		if (firingSet != null && firingSet.has(nodes[i])) {
+
+			c.fillStyle = c.strokeStyle = 'purple';
 		}
 		nodes[i].draw(c);
 	}
+
 	for(var i = 0; i < links.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (links[i] == selectedObject) ? 'blue' : 'black';
+		if (firingSet != null && firingSet.has(links[i]['nodeA']) && firingSet.has(links[i]['nodeB'])) {
+			c.fillStyle = c.strokeStyle = 'purple';
+		}
 		links[i].draw(c);
 	}
 	if(currentLink != null) {
@@ -409,10 +414,15 @@ window.onload = function() {
 							dharsStart = i;
 						}
 					}
-					firingSet = dhars(dharsStart);
-					firingSet.forEach(node => {
-						console.log(nodes[node]);
-					});
+					const dharsNums = dhars(dharsStart);
+					console.log(dharsNums);
+					firingSet = new Set();
+
+					dharsNums.forEach(num => {
+						console.log(nodes[num]);
+						firingSet.add(nodes[num]);
+					})
+					
 				}
 			}
 		}
