@@ -111,6 +111,7 @@ var selectedObject = null; // either a Link or a Node
 var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
+var firingSet = null;
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
@@ -224,6 +225,9 @@ function drawUsing(c) {
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
+		if (firingSet != null && firingSet.has(i)) {
+			c.fillStyle = c.strokeStyle = 'red';
+		}
 		nodes[i].draw(c);
 	}
 	for(var i = 0; i < links.length; i++) {
@@ -281,6 +285,38 @@ function snapNode(node) {
 			}
 		}
 	}
+}
+
+function getNodeNum(node) {
+	for (let i = 0; i < nodes.length; i++) {
+		if (nodes[i] === node) {
+			return i;
+		}
+	}
+}
+
+function fireNode(node) {
+	var chipsToFireAway = 0;
+	// Look for edges to adjacent nodes
+	var modifier = 1;
+	if (shift) {
+		modifier = -1;
+	}
+	var edges = leavingEdges(node);
+	for (var i = 0; i < edges.length; i++) {
+		var edge = edges[i];
+		var otherNode = edge.nodeB;
+		if (otherNode === node) {
+			otherNode = edge.nodeA;
+		}
+		var edgeWeight = 1;
+		if (edge.text !== '' && !isNaN(edge.text)) {
+			edgeWeight = parseInt(edge.text);
+		}
+		chipsToFireAway += edgeWeight;
+		incrementNode(otherNode, edgeWeight * modifier);
+	}
+	incrementNode(node, -chipsToFireAway * modifier)
 }
 
 window.onload = function() {
@@ -352,27 +388,14 @@ window.onload = function() {
 			var currentObject = selectObject(mouse.x, mouse.y);
 			if (currentObject != null) {
 				if (currentObject instanceof Node) {
-					var chipsToFireAway = 0;
-					// Look for edges to adjacent nodes
-					var modifier = 1;
-					if (shift) {
-						modifier = -1;
+					if (firingSet != null && firingSet.has(getNodeNum(currentObject))) {
+						firingSet.forEach(nodeNum => {
+							fireNode(nodes[nodeNum]);
+						})
+						firingSet = null;
+					} else {
+						fireNode(currentObject);
 					}
-					var edges = leavingEdges(currentObject);
-					for (var i = 0; i < edges.length; i++) {
-						var edge = edges[i];
-						var otherNode = edge.nodeB;
-						if (otherNode === currentObject) {
-							otherNode = edge.nodeA;
-						}
-						var edgeWeight = 1;
-						if (edge.text !== '' && !isNaN(edge.text)) {
-							edgeWeight = parseInt(edge.text);
-						}
-						chipsToFireAway += edgeWeight;
-						incrementNode(otherNode, edgeWeight * modifier);
-					}
-					incrementNode(currentObject, -chipsToFireAway * modifier)
 				}
 			}
 		} else if (mode === 'dhars') {
@@ -380,14 +403,13 @@ window.onload = function() {
 			if (currentObject != null) {
 				if (currentObject instanceof Node) {
 					// need to find this node in local storage to get it's number
-					let nodes = JSON.parse(localStorage['fsm'])['nodes'];
 					let dharsStart = 0;
 					for (let i = 0; i < nodes.length; i++) {
-						if (currentObject.containsPoint(nodes[i]['x'], nodes[i]['y'])) {
+						if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
 							dharsStart = i;
 						}
 					}
-					const firingSet = dhars(dharsStart);
+					firingSet = dhars(dharsStart);
 					firingSet.forEach(node => {
 						console.log(nodes[node]);
 					});
