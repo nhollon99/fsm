@@ -114,12 +114,17 @@ var originalClick;
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
+// 'dhars'
 var mode = 'drawing';
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
+	var dhars = document.getElementById('dhars');
 	if (element.checked) {
 		mode = 'coinfiring';
+		selectedObject = null;
+	} else if (dhars.checked) {
+		mode = 'dhars';
 		selectedObject = null;
 	}
 	else {
@@ -302,8 +307,18 @@ window.onload = function() {
 	};
 
 	document.getElementById('coinfiring').onclick = function() {
+		if (document.getElementById('dhars').checked) {
+			document.getElementById('dhars').checked = false;
+		}
 		updateMode();
 	};
+
+	document.getElementById('dhars').onclick = () => {
+		if (document.getElementById('coinfiring').checked) {
+			document.getElementById('coinfiring').checked = false;
+		}
+		updateMode();
+	}
 
 	updateMode();
 
@@ -358,6 +373,24 @@ window.onload = function() {
 						incrementNode(otherNode, edgeWeight * modifier);
 					}
 					incrementNode(currentObject, -chipsToFireAway * modifier)
+				}
+			}
+		} else if (mode === 'dhars') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					// need to find this node in local storage to get it's number
+					let nodes = JSON.parse(localStorage['fsm'])['nodes'];
+					let dharsStart = 0;
+					for (let i = 0; i < nodes.length; i++) {
+						if (currentObject.x === nodes[i]['x'] && currentObject.y === nodes[i]['y']) {
+							dharsStart = i;
+						}
+					}
+					const firingSet = dhars(dharsStart);
+					firingSet.forEach(node => {
+						console.log(nodes[node]);
+					});
 				}
 			}
 		}
