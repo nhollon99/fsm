@@ -111,7 +111,7 @@ var selectedObject = null; // either a Link or a Node
 var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
-var firingSet = null;
+var firingSet = new Set();
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
@@ -225,7 +225,7 @@ function drawUsing(c) {
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet != null && firingSet.has(nodes[i])) {
+		if (firingSet.has(nodes[i])) {
 
 			c.fillStyle = c.strokeStyle = 'purple';
 		}
@@ -301,6 +301,7 @@ function getNodeNum(node) {
 }
 
 function fireNode(node) {
+	console.log(node);
 	var chipsToFireAway = 0;
 	// Look for edges to adjacent nodes
 	var modifier = 1;
@@ -393,11 +394,11 @@ window.onload = function() {
 			var currentObject = selectObject(mouse.x, mouse.y);
 			if (currentObject != null) {
 				if (currentObject instanceof Node) {
-					if (firingSet != null && firingSet.has(getNodeNum(currentObject))) {
-						firingSet.forEach(nodeNum => {
-							fireNode(nodes[nodeNum]);
+					if (firingSet.has(currentObject)) {
+						firingSet.forEach(node => {
+							fireNode(node);
 						})
-						firingSet = null;
+						firingSet = new Set();
 					} else {
 						fireNode(currentObject);
 					}
@@ -416,7 +417,6 @@ window.onload = function() {
 					}
 					const dharsNums = dhars(dharsStart);
 					console.log(dharsNums);
-					firingSet = new Set();
 
 					dharsNums.forEach(num => {
 						console.log(nodes[num]);
