@@ -111,19 +111,43 @@ var selectedObject = null; // either a Link or a Node
 var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
+var firingSet = new Set();
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
 var mode = 'drawing';
 
+//allowed modes:
+// 'firing'
+// 'dhars'
+// TODO: 'greedy'
+// TODO: 'qreduce'
+// 
+let coinfiringMode = 'fire';
+
 function updateMode() {
 	var element = document.getElementById('coinfiring');
+	var chipfiringModes = document.getElementById('chipfiringModes');
+
 	if (element.checked) {
 		mode = 'coinfiring';
+		chipfiringModes.style.display = 'block';
+		updateFiringMode();
 		selectedObject = null;
-	}
-	else {
+	} else {
+		chipfiringModes.style.display = 'none';
 		mode = 'drawing';
+	}
+}
+
+function updateFiringMode() {
+	let dhars = document.getElementById('dhars');
+	if (dhars.checked) {
+		coinfiringMode = 'dhars';
+		selectedObject = null;
+	} else {
+		coinfiringMode = 'firing';
+		selectedObject = null;
 	}
 }
 
@@ -219,11 +243,19 @@ function drawUsing(c) {
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
+		if (firingSet.has(nodes[i])) {
+
+			c.fillStyle = c.strokeStyle = 'purple';
+		}
 		nodes[i].draw(c);
 	}
+
 	for(var i = 0; i < links.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (links[i] == selectedObject) ? 'blue' : 'black';
+		if (firingSet != null && firingSet.has(links[i]['nodeA']) && firingSet.has(links[i]['nodeB'])) {
+			c.fillStyle = c.strokeStyle = 'purple';
+		}
 		links[i].draw(c);
 	}
 	if(currentLink != null) {
@@ -278,6 +310,39 @@ function snapNode(node) {
 	}
 }
 
+function getNodeNum(node) {
+	for (let i = 0; i < nodes.length; i++) {
+		if (nodes[i] === node) {
+			return i;
+		}
+	}
+}
+
+function fireNode(node) {
+	console.log(node);
+	var chipsToFireAway = 0;
+	// Look for edges to adjacent nodes
+	var modifier = 1;
+	if (shift) {
+		modifier = -1;
+	}
+	var edges = leavingEdges(node);
+	for (var i = 0; i < edges.length; i++) {
+		var edge = edges[i];
+		var otherNode = edge.nodeB;
+		if (otherNode === node) {
+			otherNode = edge.nodeA;
+		}
+		var edgeWeight = 1;
+		if (edge.text !== '' && !isNaN(edge.text)) {
+			edgeWeight = parseInt(edge.text);
+		}
+		chipsToFireAway += edgeWeight;
+		incrementNode(otherNode, edgeWeight * modifier);
+	}
+	incrementNode(node, -chipsToFireAway * modifier)
+}
+
 window.onload = function() {
 
 	document.getElementById("clearCanvas").onclick = 
@@ -302,8 +367,22 @@ window.onload = function() {
 	};
 
 	document.getElementById('coinfiring').onclick = function() {
+		if (document.getElementById('dhars').checked) {
+			document.getElementById('dhars').checked = false;
+		}
+		document.getElementById('firing').checked = true;
 		updateMode();
 	};
+
+	document.getElementById('dhars').onclick = () => {
+		document.getElementById('firing').checked = false;
+		updateFiringMode();
+	}
+
+	document.getElementById('firing').onclick = () => {
+		document.getElementById('dhars').checked = false;
+		updateFiringMode();
+	}
 
 	updateMode();
 
@@ -334,30 +413,43 @@ window.onload = function() {
 			}
 		}
 		else if (mode === 'coinfiring') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					var chipsToFireAway = 0;
-					// Look for edges to adjacent nodes
-					var modifier = 1;
-					if (shift) {
-						modifier = -1;
-					}
-					var edges = leavingEdges(currentObject);
-					for (var i = 0; i < edges.length; i++) {
-						var edge = edges[i];
-						var otherNode = edge.nodeB;
-						if (otherNode === currentObject) {
-							otherNode = edge.nodeA;
+			if (coinfiringMode === 'firing') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						if (firingSet.has(currentObject)) {
+							firingSet.forEach(node => {
+								fireNode(node);
+							})
+							firingSet = new Set();
+						} else {
+							fireNode(currentObject);
 						}
-						var edgeWeight = 1;
-						if (edge.text !== '' && !isNaN(edge.text)) {
-							edgeWeight = parseInt(edge.text);
-						}
-						chipsToFireAway += edgeWeight;
-						incrementNode(otherNode, edgeWeight * modifier);
 					}
-					incrementNode(currentObject, -chipsToFireAway * modifier)
+				}
+			} else if (coinfiringMode === 'dhars') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// need to find this node in local storage to get it's number
+						let dharsStart = 0;
+						for (let i = 0; i < nodes.length; i++) {
+							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
+								dharsStart = i;
+							}
+						}
+						const dharsNums = dhars(dharsStart);
+
+						document.getElementById('firing').click();
+						
+						firingSet = new Set();
+	
+						dharsNums.forEach(num => {
+							console.log(nodes[num]);
+							firingSet.add(nodes[num]);
+						})
+						
+					}
 				}
 			}
 		}
