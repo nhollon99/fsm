@@ -115,21 +115,38 @@ var firingSet = new Set();
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
-// 'dhars'
 var mode = 'drawing';
+
+//allowed modes:
+// 'firing'
+// 'dhars'
+// TODO: 'greedy'
+// TODO: 'qreduce'
+let coinfiringMode = 'fire';
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
-	var dhars = document.getElementById('dhars');
+	var chipfiringModes = document.getElementById('chipfiringModes');
+
 	if (element.checked) {
 		mode = 'coinfiring';
+		chipfiringModes.style.display = 'block';
+		updateFiringMode();
 		selectedObject = null;
-	} else if (dhars.checked) {
-		mode = 'dhars';
-		selectedObject = null;
-	}
-	else {
+	} else {
+		chipfiringModes.style.display = 'none';
 		mode = 'drawing';
+	}
+}
+
+function updateFiringMode() {
+	let dhars = document.getElementById('dhars');
+	if (dhars.checked) {
+		coinfiringMode = 'dhars';
+		selectedObject = null;
+	} else {
+		coinfiringMode = 'firing';
+		selectedObject = null;
 	}
 }
 
@@ -356,10 +373,13 @@ window.onload = function() {
 	};
 
 	document.getElementById('dhars').onclick = () => {
-		if (document.getElementById('coinfiring').checked) {
-			document.getElementById('coinfiring').checked = false;
-		}
-		updateMode();
+		document.getElementById('firing').checked = false;
+		updateFiringMode();
+	}
+
+	document.getElementById('firing').onclick = () => {
+		document.getElementById('dhars').checked = false;
+		updateFiringMode();
 	}
 
 	updateMode();
@@ -391,38 +411,43 @@ window.onload = function() {
 			}
 		}
 		else if (mode === 'coinfiring') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					if (firingSet.has(currentObject)) {
-						firingSet.forEach(node => {
-							fireNode(node);
-						})
-						firingSet = new Set();
-					} else {
-						fireNode(currentObject);
-					}
-				}
-			}
-		} else if (mode === 'dhars') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					// need to find this node in local storage to get it's number
-					let dharsStart = 0;
-					for (let i = 0; i < nodes.length; i++) {
-						if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
-							dharsStart = i;
+			if (coinfiringMode === 'firing') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						if (firingSet.has(currentObject)) {
+							firingSet.forEach(node => {
+								fireNode(node);
+							})
+							firingSet = new Set();
+						} else {
+							fireNode(currentObject);
 						}
 					}
-					const dharsNums = dhars(dharsStart);
-					console.log(dharsNums);
+				}
+			} else if (coinfiringMode === 'dhars') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// need to find this node in local storage to get it's number
+						let dharsStart = 0;
+						for (let i = 0; i < nodes.length; i++) {
+							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
+								dharsStart = i;
+							}
+						}
+						const dharsNums = dhars(dharsStart);
 
-					dharsNums.forEach(num => {
-						console.log(nodes[num]);
-						firingSet.add(nodes[num]);
-					})
-					
+						document.getElementById('firing').click();
+						
+						firingSet = new Set();
+	
+						dharsNums.forEach(num => {
+							console.log(nodes[num]);
+							firingSet.add(nodes[num]);
+						})
+						
+					}
 				}
 			}
 		}
