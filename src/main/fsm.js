@@ -273,6 +273,7 @@ function drawUsing(c) {
 		if (firingSet.has(nodes[i])) {
 
 			c.fillStyle = c.strokeStyle = 'purple';
+			c.linewidth = 2;
 		}
 		nodes[i].draw(c);
 	}
@@ -282,6 +283,7 @@ function drawUsing(c) {
 		c.fillStyle = c.strokeStyle = (links[i] == selectedObject) ? 'blue' : 'black';
 		if (firingSet != null && firingSet.has(links[i]['nodeA']) && firingSet.has(links[i]['nodeB'])) {
 			c.fillStyle = c.strokeStyle = 'purple';
+			c.linewidth = 2;
 		}
 		links[i].draw(c);
 	}
