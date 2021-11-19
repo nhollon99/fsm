@@ -73,9 +73,13 @@ function drawLabel(c, originalText, x, y, angleOrNull, isSelected) {
 	}
 
 	// draw text and caret (round the coordinates so the caret falls on a pixel)
-	x = Math.round(x);
-	y = Math.round(y);
-	c.fillText(text, x, y + 6);
+	if('advancedFillText' in c) {
+		c.advancedFillText(text, originalText, x + width / 2, y, angleOrNull);
+	} else {
+		x = Math.round(x);
+		y = Math.round(y);
+		c.fillText(text, x, y + 6);
+	}
 	
 }
 
@@ -713,6 +717,7 @@ function saveAsLaTeX() {
 	selectedObject = oldSelectedObject;
 	var texData = exporter.toLaTeX();
 	output(texData);
+	console.log(texData);
 }
 
 function saveAsJSON() {
