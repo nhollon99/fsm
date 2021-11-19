@@ -53,6 +53,33 @@ function canvasHasFocus() {
 	return (document.activeElement || document.body) == document.body;
 }
 
+function drawLabel(c, originalText, x, y, angleOrNull, isSelected) {
+	text = convertLatexShortcuts(originalText);
+	c.font = '20px "Times New Roman", serif';
+	var width = c.measureText(text).width;
+
+	// center the text
+	x -= width / 2;
+
+	// position the text intelligently if given an angle
+	if(angleOrNull != null) {
+		var cos = Math.cos(angleOrNull);
+		var sin = Math.sin(angleOrNull);
+		var cornerPointX = (width / 2 + 5) * (cos > 0 ? 1 : -1);
+		var cornerPointY = (10 + 5) * (sin > 0 ? 1 : -1);
+		var slide = sin * Math.pow(Math.abs(sin), 40) * cornerPointX - cos * Math.pow(Math.abs(cos), 10) * cornerPointY;
+		x += cornerPointX - sin * slide;
+		y += cornerPointY + cos * slide;
+	}
+
+	// draw text and caret (round the coordinates so the caret falls on a pixel)
+	x = Math.round(x);
+	y = Math.round(y);
+	c.fillText(text, x, y + 6);
+	
+}
+
+
 function drawText(c, originalText, x, y, angleOrNull, isSelected) {
 	text = convertLatexShortcuts(originalText);
 	c.font = '20px "Times New Roman", serif';
@@ -318,6 +345,16 @@ function getNodeNum(node) {
 	}
 }
 
+function getNodeLabel(num) {
+	let ret = 'v';
+	strng = String(num);
+	len = strng.length;
+	for (i = 0; i < len; i++) {
+		ret += `_${strng.charAt(i)}`;
+	}
+	return ret;
+}
+
 function fireNode(node) {
 	console.log(node);
 	var chipsToFireAway = 0;
@@ -474,6 +511,7 @@ window.onload = function() {
 			if(selectedObject == null) {
 				selectedObject = new Node(mouse.x, mouse.y);
 				nodes.push(selectedObject);
+				nodes[nodes.length-1].label = getNodeLabel(nodes.length);
 				resetCaret();
 				draw();
 			} else if(selectedObject instanceof Node) {
@@ -559,6 +597,8 @@ document.onkeydown = function(e) {
 	} else if(key == 46) { // delete key
 		if(selectedObject != null) {
 			for(var i = 0; i < nodes.length; i++) {
+				// Relabel nodes:
+				nodes[i].label = getNodeLabel(i+1);
 				if(nodes[i] == selectedObject) {
 					nodes.splice(i--, 1);
 				}

@@ -5,6 +5,7 @@ function Node(x, y) {
 	this.mouseOffsetY = 0;
 	this.isAcceptState = false;
 	this.text = '';
+	this.label = '';
 }
 
 Node.prototype.setMouseStart = function(x, y) {
@@ -25,6 +26,7 @@ Node.prototype.draw = function(c) {
 
 	// draw the text
 	drawText(c, this.text, this.x, this.y, null, selectedObject == this);
+	drawLabel(c, this.label, this.x - 33, this.y - 33, null, selectedObject == this);
 
 	// draw a double circle for an accept state
 	if(this.isAcceptState) {
