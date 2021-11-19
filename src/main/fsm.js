@@ -122,6 +122,7 @@ var mode = 'drawing';
 // 'dhars'
 // TODO: 'greedy'
 // TODO: 'qreduce'
+// 
 let coinfiringMode = 'fire';
 
 function updateMode() {
@@ -369,6 +370,7 @@ window.onload = function() {
 		if (document.getElementById('dhars').checked) {
 			document.getElementById('dhars').checked = false;
 		}
+		document.getElementById('firing').checked = true;
 		updateMode();
 	};
 
