@@ -143,6 +143,7 @@ var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
 var firingSet = new Set();
+var script = [];
 var chipBags = [];
 var colors = ['purple', 'blue'];
 // allowed modes:
@@ -219,6 +220,32 @@ function updateFiringMode() {
 		coinfiringMode = 'firing';
 		selectedObject = null;
 	}
+	displayRecord();
+}
+
+//display recording box
+function displayRecord() {
+	let record = document.getElementById('record');
+	let firingscript = document.getElementById('firingscript');
+	firingscript.value = script.toString();
+	if (record.checked) {
+		firingscript.style.display = 'block';
+	}
+	else{
+		firingscript.style.display = 'none';
+	}
+}
+
+function updateScript(node, isFire) {
+	let firingscript = document.getElementById('firingscript');
+	if (isFire){
+		script[node.label - 1] += 1;
+	}
+	else {
+		script[node.label - 1] -= 1;
+	}
+	console.log(script);
+	firingscript.value = script.toString();
 }
 
 // Get an array of edges that are outgoing from this node
@@ -469,6 +496,10 @@ window.onload = function() {
 		updateFiringMode();
 	}
 
+	document.getElementById('record').onclick = () => {
+		displayRecord();
+	}
+
 	updateMode();
 
 	canvas = document.getElementById('canvas');
@@ -502,13 +533,20 @@ window.onload = function() {
 				var currentObject = selectObject(mouse.x, mouse.y);
 				if (currentObject != null) {
 					if (currentObject instanceof Node) {
+						let isRecording = document.getElementById('record').checked;
 						if (firingSet.has(currentObject)) {
 							firingSet.forEach(node => {
 								fireNode(node);
+								if (isRecording){
+									updateScript(node, !shift);
+								}
 							})
 							firingSet = new Set();
 						} else {
 							fireNode(currentObject);
+							if (isRecording){
+								updateScript(currentObject, !shift);
+							}
 						}
 					}
 				}
@@ -561,7 +599,8 @@ window.onload = function() {
 			if(selectedObject == null) {
 				selectedObject = new Node(mouse.x, mouse.y);
 				nodes.push(selectedObject);
-				nodes[nodes.length-1].label = getNodeLabel(nodes.length);
+				nodes[nodes.length-1].label = nodes.length;
+				script.push(0);
 				resetCaret();
 				draw();
 			} else if(selectedObject instanceof Node) {
@@ -648,9 +687,10 @@ document.onkeydown = function(e) {
 		if(selectedObject != null) {
 			for(var i = 0; i < nodes.length; i++) {
 				// Relabel nodes:
-				nodes[i].label = getNodeLabel(i+1);
+				nodes[i].label = i+1;
 				if(nodes[i] == selectedObject) {
 					nodes.splice(i--, 1);
+					script.splice(i--, 1);
 				}
 			}
 			for(var i = 0; i < links.length; i++) {
