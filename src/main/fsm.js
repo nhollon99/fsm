@@ -143,6 +143,8 @@ var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
 var firingSet = new Set();
+var chipBags = [];
+var colors = ['purple', 'blue'];
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
@@ -153,8 +155,45 @@ var mode = 'drawing';
 // 'dhars'
 // TODO: 'greedy'
 // TODO: 'qreduce'
-// 
+// TODO: 'set'
 let coinfiringMode = 'fire';
+
+/*
+ * Takes in a node, and checks if it is 
+ * in any set current stored. If it is, 
+ * then we return the number of the set it is in.
+ * If the node is in multiple sets, 
+ * returns the total number of sets, indicating 
+ * Overlap. 
+ */
+function isInSet(node) {
+	let ret = -1;
+	for (set in chipBags) {
+		if (chipBags[set].has(node)) {
+			if (ret < chipBags.length) {
+				ret = set;
+			} else {
+				ret = chipBags.length;
+			}
+		}
+	}
+
+	return ret;
+}
+
+function linkInSet(link) {
+	let ret = -1;
+	for (set in chipBags) {
+		if ((chipBags[set].has(link['nodeA'])) && (chipBags[set].has(link['nodeB']))) {
+			if (ret < chipBags.length) {
+				ret = set;
+			} else {
+				ret = chipBags.length;
+			}
+		}
+	}
+	return ret;
+}
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
@@ -270,13 +309,14 @@ function drawUsing(c) {
 	c.clearRect(0, 0, canvas.width, canvas.height);
 	c.save();
 	c.translate(0.5, 0.5);
+	let col = 0;
 
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet.has(nodes[i])) {
-
-			c.fillStyle = c.strokeStyle = 'purple';
+		col = isInSet(nodes[i])
+		if ((chipBags.length > 0) && col > -1) {
+			c.fillStyle = c.strokeStyle = colors[col];
 			c.lineWidth = 5;
 		}
 		nodes[i].draw(c);
@@ -285,8 +325,10 @@ function drawUsing(c) {
 	for(var i = 0; i < links.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (links[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet != null && firingSet.has(links[i]['nodeA']) && firingSet.has(links[i]['nodeB'])) {
-			c.fillStyle = c.strokeStyle = 'purple';
+		col = linkInSet(links[i])
+		if ((chipBags.length > 0) && (col > -1)) {
+			console.log(colors[col]);
+			c.fillStyle = c.strokeStyle = colors[col];
 			c.lineWidth = 3;
 		}
 		links[i].draw(c);
@@ -491,6 +533,8 @@ window.onload = function() {
 							console.log(nodes[num]);
 							firingSet.add(nodes[num]);
 						})
+
+						chipBags.push(firingSet);
 						
 					}
 				}
