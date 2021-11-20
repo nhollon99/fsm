@@ -707,14 +707,21 @@ window.onload = function() {
 						// So, we need to find all nodes in the same
 						// set as this node, and fire all of them.
 						let sets = findAllSets(currentObject);
+						let isRecording = document.getElementById('record').checked;
 						for (set of sets) {
 							set.forEach(node => {
 								fireNode(node);
+								if (isRecording){
+									updateScript(node, !shift);
+								}
 							})
 						}
 
 						if (sets.length === 0) {
 							fireNode(currentObject);
+							if (isRecording){
+								updateScript(currentObject, !shift);
+							}
 						}
 					}
 				}
