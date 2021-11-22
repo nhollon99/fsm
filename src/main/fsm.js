@@ -684,6 +684,8 @@ window.onload = function() {
 							firingSet.add(nodes[num]);
 						})
 
+						chipBags = [];
+
 						chipBags.push(firingSet);
 						
 					}
@@ -692,10 +694,10 @@ window.onload = function() {
 				var currentObject = selectObject(mouse.x, mouse.y);
 				if (currentObject != null) {
 					if (currentObject instanceof Node) {
-						if (chipBags[chipBags.length - 1].has(currentObject)) {
-							chipBags[chipBags.length - 1].delete(currentObject);
+						if (chipBags[0].has(currentObject)) {
+							chipBags[0].delete(currentObject);
 						} else {
-							chipBags[chipBags.length - 1].add(currentObject);
+							chipBags[0].add(currentObject);
 						}
 					}
 				}
@@ -735,10 +737,8 @@ window.onload = function() {
 						// create a mode, setAdd
 
 						chipBags.push(new Set());
-						chipBags[chipBags.length - 1].add(currentObject);
+						chipBags[0].add(currentObject);
 
-						colors[colors.length -1] = (getRandomColor());
-						colors.push('blue');
 						// Hidden mode;
 						coinfiringMode = 'setAdd';
 					}
