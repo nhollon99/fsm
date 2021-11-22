@@ -780,6 +780,7 @@ window.onload = function() {
 				selectedObject = new Node(mouse.x, mouse.y);
 				nodes.push(selectedObject);
 				nodes[nodes.length-1].label = nodes.length;
+				nodes[nodes.length-1].text = '0';
 				script.push(0);
 				resetCaret();
 				draw();
