@@ -1,6 +1,15 @@
 /* 
 Idea:
-- user chooses a vertex to be q to run q-reducing on
+- user chooses a vertex to be q to run q-reducing on 
+- make it so only your vertex has debt
+    - build spanning tree 
+    - breadth first search
+    - build a table of distances and number of chips on each node
+        - 0th element of tuple/array is distance, 1st element is number of chips 
+    - after you set borrow, update numbers of chips
+        - keep set borrowing until all vertices in the set out of debt
+    - find furthest vertices away, set borrow at all of those until positive chips
+    - then move in to next layer and set borrow again (including positive perimeter chips)
 - within a loop: 
     - call dhars on that vertex to see if there's a legal firing set
     - if not, you're done
@@ -20,6 +29,10 @@ Questions:
 function qreduce(node) {
     
 
+}
+
+function debtOnq(node){
+    
 
 
 }
