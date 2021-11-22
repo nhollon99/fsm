@@ -171,13 +171,14 @@ let coinfiringMode = 'fire';
  * Overlap. 
  */
 function isInSet(node) {
+	console.log(colors);
 	let ret = -1;
 	for (set in chipBags) {
 		if (chipBags[set].has(node)) {
-			if (ret < chipBags.length) {
+			if (ret === -1) {
 				ret = set;
 			} else {
-				ret = chipBags.length;
+				ret = colors.length-1;
 			}
 		}
 	}
@@ -199,10 +200,10 @@ function linkInSet(link) {
 	let ret = -1;
 	for (set in chipBags) {
 		if ((chipBags[set].has(link['nodeA'])) && (chipBags[set].has(link['nodeB']))) {
-			if (ret < chipBags.length) {
+			if (ret === -1) {
 				ret = set;
 			} else {
-				ret = chipBags.length;
+				ret = colors.length -1;
 			}
 		}
 	}
@@ -575,9 +576,7 @@ window.onload = function() {
 	};
 
 	document.getElementById('coinfiring').onclick = function() {
-		if (document.getElementById('dhars').checked) {
-			document.getElementById('dhars').checked = false;
-		}
+		turnOffChipFiringModes('firing');
 		document.getElementById('firing').checked = true;
 		updateMode();
 	};
