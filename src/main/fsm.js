@@ -53,6 +53,37 @@ function canvasHasFocus() {
 	return (document.activeElement || document.body) == document.body;
 }
 
+function drawLabel(c, originalText, x, y, angleOrNull, isSelected) {
+	text = convertLatexShortcuts(originalText);
+	c.font = '20px "Times New Roman", serif';
+	var width = c.measureText(text).width;
+
+	// center the text
+	x -= width / 2;
+
+	// position the text intelligently if given an angle
+	if(angleOrNull != null) {
+		var cos = Math.cos(angleOrNull);
+		var sin = Math.sin(angleOrNull);
+		var cornerPointX = (width / 2 + 5) * (cos > 0 ? 1 : -1);
+		var cornerPointY = (10 + 5) * (sin > 0 ? 1 : -1);
+		var slide = sin * Math.pow(Math.abs(sin), 40) * cornerPointX - cos * Math.pow(Math.abs(cos), 10) * cornerPointY;
+		x += cornerPointX - sin * slide;
+		y += cornerPointY + cos * slide;
+	}
+
+	// draw text and caret (round the coordinates so the caret falls on a pixel)
+	if('advancedFillText' in c) {
+		c.advancedFillText(text, originalText, x + width / 2, y, angleOrNull);
+	} else {
+		x = Math.round(x);
+		y = Math.round(y);
+		c.fillText(text, x, y + 6);
+	}
+	
+}
+
+
 function drawText(c, originalText, x, y, angleOrNull, isSelected) {
 	text = convertLatexShortcuts(originalText);
 	c.font = '20px "Times New Roman", serif';
@@ -112,6 +143,9 @@ var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
 var firingSet = new Set();
+var script = [];
+var chipBags = [];
+var colors = ['purple','gold', 'blue'];
 // allowed modes:
 // 'drawing'
 // 'coinfiring'
@@ -120,10 +154,60 @@ var mode = 'drawing';
 //allowed modes:
 // 'firing'
 // 'dhars'
+// 'setCreate'
+// 'setFire'
+// 'setAdd' -- Hidden Mode
+// 'setDelete
 // TODO: 'greedy'
 // TODO: 'qreduce'
-// 
 let coinfiringMode = 'fire';
+
+/*
+ * Takes in a node, and checks if it is 
+ * in any set current stored. If it is, 
+ * then we return the number of the set it is in.
+ * If the node is in multiple sets, 
+ * returns the total number of sets, indicating 
+ * Overlap. 
+ */
+function isInSet(node) {
+	let ret = -1;
+	for (set in chipBags) {
+		if (chipBags[set].has(node)) {
+			if (ret < chipBags.length) {
+				ret = set;
+			} else {
+				ret = chipBags.length;
+			}
+		}
+	}
+
+	return ret;
+}
+
+function findAllSets(node) {
+	let ret = [];
+	for (set in chipBags) {
+		if (chipBags[set].has(node)) {
+			ret.push(chipBags[set]);
+		}
+	}
+	return ret;
+}
+
+function linkInSet(link) {
+	let ret = -1;
+	for (set in chipBags) {
+		if ((chipBags[set].has(link['nodeA'])) && (chipBags[set].has(link['nodeB']))) {
+			if (ret < chipBags.length) {
+				ret = set;
+			} else {
+				ret = chipBags.length;
+			}
+		}
+	}
+	return ret;
+}
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
@@ -142,13 +226,51 @@ function updateMode() {
 
 function updateFiringMode() {
 	let dhars = document.getElementById('dhars');
+	let set = document.getElementById('setCreate');
+	let setFire = document.getElementById('setFire');
+	let setDelete = document.getElementById('setDelete');
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
+		selectedObject = null;
+	} else if (set.checked) {
+		coinfiringMode = 'setCreate';
+		selectedObject = null;
+	} else if (setFire.checked) {
+		coinfiringMode = 'setFire';
+		selectedObject = null;
+	} else if (setDelete.checked) {
+		coinfiringMode = 'setDelete';
 		selectedObject = null;
 	} else {
 		coinfiringMode = 'firing';
 		selectedObject = null;
 	}
+	displayRecord();
+}
+
+//display recording box
+function displayRecord() {
+	let record = document.getElementById('record');
+	let firingscript = document.getElementById('firingscript');
+	firingscript.value = script.toString();
+	if (record.checked) {
+		firingscript.style.display = 'block';
+	}
+	else{
+		firingscript.style.display = 'none';
+	}
+}
+
+function updateScript(node, isFire) {
+	let firingscript = document.getElementById('firingscript');
+	if (isFire){
+		script[node.label - 1] += 1;
+	}
+	else {
+		script[node.label - 1] -= 1;
+	}
+	console.log(script);
+	firingscript.value = script.toString();
 }
 
 // Get an array of edges that are outgoing from this node
@@ -239,13 +361,15 @@ function drawUsing(c) {
 	c.clearRect(0, 0, canvas.width, canvas.height);
 	c.save();
 	c.translate(0.5, 0.5);
+	let col = 0;
 
 	for(var i = 0; i < nodes.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (nodes[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet.has(nodes[i])) {
-
-			c.fillStyle = c.strokeStyle = 'purple';
+		col = isInSet(nodes[i])
+		if ((chipBags.length > 0) && col > -1) {
+			c.fillStyle = c.strokeStyle = colors[col];
+			c.lineWidth = 5;
 		}
 		nodes[i].draw(c);
 	}
@@ -253,8 +377,10 @@ function drawUsing(c) {
 	for(var i = 0; i < links.length; i++) {
 		c.lineWidth = 1;
 		c.fillStyle = c.strokeStyle = (links[i] == selectedObject) ? 'blue' : 'black';
-		if (firingSet != null && firingSet.has(links[i]['nodeA']) && firingSet.has(links[i]['nodeB'])) {
-			c.fillStyle = c.strokeStyle = 'purple';
+		col = linkInSet(links[i])
+		if ((chipBags.length > 0) && (col > -1)) {
+			c.fillStyle = c.strokeStyle = colors[col];
+			c.lineWidth = 3;
 		}
 		links[i].draw(c);
 	}
@@ -310,11 +436,93 @@ function snapNode(node) {
 	}
 }
 
+function getRandomColor() {
+	// We can just generate a random hex number
+	do {
+		ret = '#';
+		for (i = 0; i < 3; i++) {
+			ret += Math.ceil(Math.random()*256).toString(16);
+		}
+	} while (colorDistance(ret) <= 1);
+	return ret;
+}
+
+function hexStrToNum(color) {
+	let colorArr = [];
+	let val = '';
+	console.log(color);
+	for (i = 1; i < 7; i+=2) {
+		val = '';
+		val += color.charAt(i);
+		val += color.charAt(i+1);
+		colorArr.push(Number(val));
+	}
+	return colorArr;
+}
+
+function colorDistance(color) {
+	// Color is in hex, so we convert
+	let minDist = Infinity;
+	let dist = 0;
+	let colorArr = hexStrToNum(color);
+
+	// Now we need to go through all colors and check distance
+	let compColor = [];
+	for (j = 2; j < (colors.length - 1); j+= 1) {
+		compColor = hexStrToNum(colors[j]);
+		dist = Math.sqrt((colorArr[0] - compColor[0]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2);
+		if (minDist > dist) {
+			minDist = dist;
+		}
+	}
+	return minDist;
+
+	
+}
+
+
+
 function getNodeNum(node) {
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i] === node) {
 			return i;
 		}
+	}
+}
+
+function getNodeLabel(num) {
+	let ret = 'v';
+	strng = String(num);
+	len = strng.length;
+	for (i = 0; i < len; i++) {
+		ret += `_${strng.charAt(i)}`;
+	}
+	return ret;
+}
+
+// Turns off all chipFiringModes except the current Mode
+// I couldnt decide if we should just make an 
+// array of allowed modes or not, easily changeable
+function turnOffChipFiringModes(curMode) {
+	console.log(curMode);
+	if (curMode !== 'firing') {
+		document.getElementById('firing').checked = false;
+	}
+
+	if (curMode !== 'setCreate') {
+		document.getElementById('setCreate').checked = false;
+	}
+
+	if (curMode !== 'dhars') {
+		document.getElementById('dhars').checked = false;
+	}
+
+	if (curMode !== 'setFire') {
+		document.getElementById('setFire').checked = false;
+	}
+
+	if (curMode !== 'setDelete') {
+		document.getElementById('setDelete').checked = false;
 	}
 }
 
@@ -375,13 +583,33 @@ window.onload = function() {
 	};
 
 	document.getElementById('dhars').onclick = () => {
-		document.getElementById('firing').checked = false;
+		turnOffChipFiringModes('dhars');
 		updateFiringMode();
 	}
 
-	document.getElementById('firing').onclick = () => {
-		document.getElementById('dhars').checked = false;
+	document.getElementById('setDelete').onclick = () => {
+		turnOffChipFiringModes('setDelete');
 		updateFiringMode();
+	}
+	
+	document.getElementById('setCreate').onclick = () => {
+		turnOffChipFiringModes('setCreate');
+		updateFiringMode();
+	}
+
+	document.getElementById('setFire').onclick = () => {
+		turnOffChipFiringModes('setFire');
+		updateFiringMode();
+	}
+
+
+	document.getElementById('firing').onclick = () => {
+		turnOffChipFiringModes('firing');
+		updateFiringMode();
+	}
+
+	document.getElementById('record').onclick = () => {
+		displayRecord();
 	}
 
 	updateMode();
@@ -417,13 +645,20 @@ window.onload = function() {
 				var currentObject = selectObject(mouse.x, mouse.y);
 				if (currentObject != null) {
 					if (currentObject instanceof Node) {
+						let isRecording = document.getElementById('record').checked;
 						if (firingSet.has(currentObject)) {
 							firingSet.forEach(node => {
 								fireNode(node);
+								if (isRecording){
+									updateScript(node, !shift);
+								}
 							})
 							firingSet = new Set();
 						} else {
 							fireNode(currentObject);
+							if (isRecording){
+								updateScript(currentObject, !shift);
+							}
 						}
 					}
 				}
@@ -440,7 +675,7 @@ window.onload = function() {
 						}
 						const dharsNums = dhars(dharsStart);
 
-						document.getElementById('firing').click();
+						document.getElementById('setFire').click();
 						
 						firingSet = new Set();
 	
@@ -448,7 +683,77 @@ window.onload = function() {
 							console.log(nodes[num]);
 							firingSet.add(nodes[num]);
 						})
+
+						chipBags = [];
+
+						chipBags.push(firingSet);
 						
+					}
+				}
+			} else if (coinfiringMode === 'setAdd') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						if (chipBags[0].has(currentObject)) {
+							chipBags[0].delete(currentObject);
+						} else {
+							chipBags[0].add(currentObject);
+						}
+					}
+				}
+
+			} else if (coinfiringMode === 'setFire') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// So, we need to find all nodes in the same
+						// set as this node, and fire all of them.
+						let sets = findAllSets(currentObject);
+						let isRecording = document.getElementById('record').checked;
+						for (set of sets) {
+							set.forEach(node => {
+								fireNode(node);
+								if (isRecording){
+									updateScript(node, !shift);
+								}
+							})
+						}
+
+						if (sets.length === 0) {
+							fireNode(currentObject);
+							if (isRecording){
+								updateScript(currentObject, !shift);
+							}
+						}
+					}
+				}
+
+			} else if (coinfiringMode === 'setCreate') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// We need to either create a new set, or add to a recently
+						// created set. Seems pretty straightforward to just 
+						// create a mode, setAdd
+
+						chipBags.push(new Set());
+						chipBags[0].add(currentObject);
+
+						// Hidden mode;
+						coinfiringMode = 'setAdd';
+					}
+				}
+			} else if (coinfiringMode === 'setDelete') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// Take the current set, and delete the sets:
+						let sets = findAllSets(currentObject);
+						let index = 0;
+						for (set of sets) {
+							index = chipBags.indexOf(set);
+							chipBags.splice(index);
+						}
 					}
 				}
 			}
@@ -474,6 +779,9 @@ window.onload = function() {
 			if(selectedObject == null) {
 				selectedObject = new Node(mouse.x, mouse.y);
 				nodes.push(selectedObject);
+				nodes[nodes.length-1].label = nodes.length;
+				nodes[nodes.length-1].text = '0';
+				script.push(0);
 				resetCaret();
 				draw();
 			} else if(selectedObject instanceof Node) {
@@ -559,8 +867,11 @@ document.onkeydown = function(e) {
 	} else if(key == 46) { // delete key
 		if(selectedObject != null) {
 			for(var i = 0; i < nodes.length; i++) {
+				// Relabel nodes:
+				nodes[i].label = i+1;
 				if(nodes[i] == selectedObject) {
 					nodes.splice(i--, 1);
+					script.splice(i--, 1);
 				}
 			}
 			for(var i = 0; i < links.length; i++) {
@@ -671,6 +982,7 @@ function saveAsLaTeX() {
 	selectedObject = oldSelectedObject;
 	var texData = exporter.toLaTeX();
 	output(texData);
+	console.log(texData);
 }
 
 function saveAsJSON() {

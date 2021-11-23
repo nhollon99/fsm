@@ -11,7 +11,9 @@ function restoreBackup() {
 			var node = new Node(backupNode.x, backupNode.y);
 			node.isAcceptState = backupNode.isAcceptState;
 			node.text = backupNode.text;
+			node.label = backupNode.label;
 			nodes.push(node);
+			script.push(0);
 		}
 		for(var i = 0; i < backup.links.length; i++) {
 			var backupLink = backup.links[i];
@@ -56,6 +58,7 @@ function backupData() {
 			'y': node.y,
 			'text': node.text,
 			'isAcceptState': node.isAcceptState,
+			'label': node.label,
 		};
 		backup.nodes.push(backupNode);
 	}
