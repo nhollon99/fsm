@@ -223,16 +223,22 @@ function updateMode() {
 		mode = 'drawing';
 	}
 }
+//Add greedy logic statement here -Heidi
+//include greedy as a box to uncheck when you check other things (as part of turn off) -Heidi 
 
 function updateFiringMode() {
 	let dhars = document.getElementById('dhars');
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
 	let setDelete = document.getElementById('setDelete');
+	let greedy = document.getElementById('greedy'); //added greedy -Heidi
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
 		selectedObject = null;
-	} else if (set.checked) {
+	} else if (greedy.checked) { //is this what I want to do? -Heidi 
+		coinfiringMode = 'greedy';
+		selectedObject = null;
+	}else if (set.checked) {
 		coinfiringMode = 'setCreate';
 		selectedObject = null;
 	} else if (setFire.checked) {
@@ -524,6 +530,10 @@ function turnOffChipFiringModes(curMode) {
 	if (curMode !== 'setDelete') {
 		document.getElementById('setDelete').checked = false;
 	}
+
+	if (curMode !== 'greedy') { //is this right? -Heidi
+		document.getElementById('greedy').checked = false;
+	}
 }
 
 function fireNode(node) {
@@ -534,6 +544,33 @@ function fireNode(node) {
 	if (shift) {
 		modifier = -1;
 	}
+	var edges = leavingEdges(node);
+	for (var i = 0; i < edges.length; i++) {
+		var edge = edges[i];
+		var otherNode = edge.nodeB;
+		if (otherNode === node) {
+			otherNode = edge.nodeA;
+		}
+		var edgeWeight = 1;
+		if (edge.text !== '' && !isNaN(edge.text)) {
+			edgeWeight = parseInt(edge.text);
+		}
+		chipsToFireAway += edgeWeight;
+		incrementNode(otherNode, edgeWeight * modifier);
+	}
+	incrementNode(node, -chipsToFireAway * modifier)
+}
+
+/*
+Created a borrowNode fxn in order to have the modifier be -1 to use in the Greedy alogithm without clicking shift 
+-Heidi 
+*/
+function borrowNode(node) { 
+	console.log(node);
+	var chipsToFireAway = 0;
+	// Look for edges to adjacent nodes
+	var modifier = -1; 
+	
 	var edges = leavingEdges(node);
 	for (var i = 0; i < edges.length; i++) {
 		var edge = edges[i];
@@ -585,6 +622,12 @@ window.onload = function() {
 	document.getElementById('dhars').onclick = () => {
 		turnOffChipFiringModes('dhars');
 		updateFiringMode();
+	}
+
+	document.getElementById('greedy').onclick = () => {
+		turnOffChipFiringModes('greedy');
+		updateFiringMode();
+		greedyHelper();
 	}
 
 	document.getElementById('setDelete').onclick = () => {
@@ -757,6 +800,9 @@ window.onload = function() {
 					}
 				}
 			}
+
+			
+			
 		}
 
 		draw();
@@ -911,6 +957,13 @@ document.onkeypress = function(e) {
 		return false;
 	}
 };
+
+//so greedy will run when we click greedy even without clicking somewhere on the canvas
+function greedyHelper(){
+	greedy(); //runs greedy but then should it return it as something? store as a variable?
+	
+	
+}
 
 function crossBrowserKey(e) {
 	e = e || window.event;
