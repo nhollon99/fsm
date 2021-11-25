@@ -25,14 +25,26 @@ Questions:
     - where in the code does the actual firing happen?
 */
 
-
-function qreduce(node) {
-    
-
-}
-
 function debtOnq(node){
     
 
 
+}
+
+function qReduce(node) {
+    let nodeLabel = node.label ;
+    let legalFiringSet = newSet()
+    legalFiringSet.add(0)
+    while (legalFiringSet.size) {
+        legalFiringSet = dhars(nodeLabel) ;
+        fireSet(legalFiringSet) ;
+    }
+}
+
+function fireSet(legalFiringset) {
+    for (node of nodes){
+        if (legalFiringSet.has(node.label)) {
+            fireNode(node);
+        }
+    }
 }

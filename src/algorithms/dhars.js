@@ -8,7 +8,7 @@ function dhars(node) {
     let nodeNum = 0;
     nodes.forEach(node => { 
         chips.push(parseInt(node['text'])); //adding chip values of each vertex to chips array
-        legalFire.add(nodeNum); //adding all chips to legal firing set to start
+        legalFire.add(nodeNum); //adding all vertices to legal firing set to start
         nodeNum += 1;
     });
 
