@@ -4,14 +4,14 @@
 
 function greedy(){
     const graph = makeAdjList(); //calls array that pairs edges and vertices
-    let nodes = JSON.parse(localStorage['fsm'])['nodes'];
+    //let nodes = JSON.parse(localStorage['fsm'])['nodes'];
     console.log(nodes); 
     const borrowed = []; //to keep track of the nodes we've borrowed at
     let winning = false; 
 
     
     //keep looping through until your divisor is out of debt or you've borrowed at every vertex
-    while(borrowed.length !== nodes.length && winning == false){ //one or two equals signs??
+    while(borrowed.length !== nodes.length && winning === false){ //one or two equals signs??
         nodes.forEach(node => {
             let chip = parseInt(node['text']);
             if(chip < 0){
@@ -32,24 +32,26 @@ function greedy(){
     else{
         //return the updated, "won" graph and write a message that it's winnable
     }
-    draw();
-    console.log("finished Algo"); //checking that it makes it here
+    //draw();
+    //console.log("finished Algo"); //checking that it makes it here
 
 }
 
 //returns true if a given divisor is winning, otherwise returns false
 function checkWinning(){
-    const graph = makeAdjList(); //calls array that pairs edges and vertices
-    let nodes = JSON.parse(localStorage['fsm'])['nodes'];
+    //const graph = makeAdjList(); //calls array that pairs edges and vertices
+    //let nodes = JSON.parse(localStorage['fsm'])['nodes'];
+    let winning = true; 
 
     nodes.forEach(node => {
         let chip = parseInt(node['text']);
         if(chip < 0){
-            return false;
+            winning = false;
         }
     });
 
-    return true; //if you iterate through each node and none are in debt, this is a winning divisor
+    console.log(winning);
+    return winning; //if you iterate through each node and none are in debt, this is a winning divisor
 }
 
 
@@ -59,10 +61,11 @@ Summary:
 - 
 
 Questions:
-- how to actually make the borrowing happen and visible on the graph
 - do we need to construct the adjacency list thing? What exactly is that for?
-- is my checkWinning fxn okay in here? do we already have this somewhere else?
 - how to make the screen tell a message to the user?
 - what else does it return? return the new divisor or is that something that's just updated and doesn't need to return?
+
+- when you've clicked firing mode and greedy, then when you unclick firing mode to update values or something, reclicking firing mode 
+    makes it so greedy is also clicked again and then greedy runs when you "unclick" it
 */
 

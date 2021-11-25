@@ -628,6 +628,7 @@ window.onload = function() {
 		turnOffChipFiringModes('greedy');
 		updateFiringMode();
 		greedyHelper();
+		draw();
 	}
 
 	document.getElementById('setDelete').onclick = () => {
