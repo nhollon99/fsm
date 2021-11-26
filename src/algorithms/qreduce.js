@@ -69,7 +69,7 @@ function debtToQ(distArr) {
     // Iterate backwards borrowing until each set of nodes
     // a distance *index* from Q is 
     let index = distArr.length - 1;
-    while (index > 0) {
+    while (index >= 0) {
         for (node of distArr[index]) {
             while (eval(node[text].valueOf()) < 0) {
                 for (j = index; j < distArr.length; j++) {
