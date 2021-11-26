@@ -25,6 +25,13 @@ Questions:
     - where in the code does the actual firing happen?
 */
 
+
+function runQReduce(node) {
+    debtToQ(buildDistanceArray(node));
+    draw();
+    qReduce(node);
+}
+
 function buildDistanceArray(node) {
     const graph = makeAdjList()
 
@@ -69,9 +76,12 @@ function debtToQ(distArr) {
     // Iterate backwards borrowing until each set of nodes
     // a distance *index* from Q is 
     let index = distArr.length - 1;
+    console.log(distArr);
+    let curNode = 0;
     while (index >= 0) {
         for (node of distArr[index]) {
-            while (eval(node[text].valueOf()) < 0) {
+            curNode = node;
+            while (eval(curNode['text'].valueOf()) < 0) {
                 for (j = index; j < distArr.length; j++) {
                     borrowSet(distArr[j]);
                 }
@@ -79,14 +89,11 @@ function debtToQ(distArr) {
         }
         index--;
     }
-
-
-
 }
 
 function qReduce(node) {
-    let nodeLabel = node.label ;
-    let legalFiringSet = newSet()
+    let nodeLabel = node.label;
+    let legalFiringSet = new Set()
     legalFiringSet.add(0)
     while (legalFiringSet.size) {
         legalFiringSet = dhars(nodeLabel) ;
@@ -96,11 +103,15 @@ function qReduce(node) {
 
 function borrowSet(set) {
     shift = true;
-    fireSet(set);
+    for (node of nodes) {
+        if (set.has(node)) {
+            fireNode(node);
+        }
+    }
     shift = false;
 }
 
-function fireSet(legalFiringset) {
+function fireSet(legalFiringSet) {
     for (node of nodes){
         if (legalFiringSet.has(node.label)) {
             fireNode(node);
