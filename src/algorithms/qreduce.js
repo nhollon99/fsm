@@ -25,6 +25,41 @@ Questions:
     - where in the code does the actual firing happen?
 */
 
+function buildDistanceArray(node) {
+    const graph = makeAdjList()
+
+    let q = []
+    q.push([node.label - 1, 0])
+    let distanceArray = []
+    let visited = new Set()
+    visited.add(node.label - 1)
+
+    while (q.length) {
+        let n = q.shift()
+        let neighbors = graph[n[0]]
+        let distance = n[1]
+
+        let distanceSet = new Set()
+
+        neighbors.forEach(neighbor => {
+            if (!visited.has(neighbor)) {
+                distanceSet.add(nodes[neighbor])
+                q.push([neighbor, distance + 1])
+                visited.add(neighbor)
+            }
+        })
+        if (distanceSet.size) {
+            if (distance < distanceArray.length) {
+                let curr = distanceArray[distance]
+                distanceArray[distance] = new Set([...curr, ...distanceSet])
+            } else {
+                distanceArray.push(distanceSet)
+            }
+        }
+    }
+    return distanceArray
+}
+
 function debtOnq(node){
     
 
