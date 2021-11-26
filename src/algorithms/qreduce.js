@@ -60,8 +60,26 @@ function buildDistanceArray(node) {
     return distanceArray
 }
 
-function debtOnq(node){
-    
+/* 
+ * Takes in a distance array (an array of sets where the index
+ * corresponds to the distance of nodes in the set from a unique vertex 
+ * q), and sends all the debt of the graph to q. Returns nothing. 
+ */
+function debtToQ(distArr) {
+    // Iterate backwards borrowing until each set of nodes
+    // a distance *index* from Q is 
+    let index = distArr.length - 1;
+    while (index > 0) {
+        for (node of distArr[index]) {
+            while (eval(node[text].valueOf()) < 0) {
+                for (j = index; j < distArr.length; j++) {
+                    borrowSet(distArr[j]);
+                }
+            }
+        }
+        index--;
+    }
+
 
 
 }
@@ -74,6 +92,12 @@ function qReduce(node) {
         legalFiringSet = dhars(nodeLabel) ;
         fireSet(legalFiringSet) ;
     }
+}
+
+function borrowSet(set) {
+    shift = true;
+    fireSet(set);
+    shift = false;
 }
 
 function fireSet(legalFiringset) {
