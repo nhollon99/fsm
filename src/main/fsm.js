@@ -157,9 +157,10 @@ var mode = 'drawing';
 // 'setCreate'
 // 'setFire'
 // 'setAdd' -- Hidden Mode
-// 'setDelete
+// 'setDelete'
+// 'qReduce'
 // TODO: 'greedy'
-// TODO: 'qreduce'
+// TODO: 'qReduce'
 let coinfiringMode = 'fire';
 
 /*
@@ -229,6 +230,7 @@ function updateFiringMode() {
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
 	let setDelete = document.getElementById('setDelete');
+	let qReduce = document.getElementById('qReduce');
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
 		selectedObject = null;
@@ -240,6 +242,9 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else if (setDelete.checked) {
 		coinfiringMode = 'setDelete';
+		selectedObject = null;
+	} else if (qReduce.checked) {
+		coinfiringMode = 'qReduce';
 		selectedObject = null;
 	} else {
 		coinfiringMode = 'firing';
@@ -524,9 +529,18 @@ function turnOffChipFiringModes(curMode) {
 	if (curMode !== 'setDelete') {
 		document.getElementById('setDelete').checked = false;
 	}
+
+	if (curMode !== 'qReduce') {
+		document.getElementById('qReduce').checked = false;
+	}
 }
 
 function fireNode(node) {
+	//audioObj = new Audio("https://www.fesliyanstudios.com/play-mp3/6236");
+	//audioObj.addEventListener("canplay", event => {
+	//	/* the audio is now playable; play it if permissions allow */
+	//	audioObj.play();
+	//  });
 	console.log(node);
 	var chipsToFireAway = 0;
 	// Look for edges to adjacent nodes
@@ -601,10 +615,7 @@ window.onload = function() {
 	};
 
 	document.getElementById('coinfiring').onclick = function() {
-		if (document.getElementById('dhars').checked) {
-			document.getElementById('dhars').checked = false;
-		}
-		document.getElementById('firing').checked = true;
+		turnOffChipFiringModes('firing');
 		updateMode();
 	};
 
@@ -635,6 +646,11 @@ window.onload = function() {
 
 	document.getElementById('firing').onclick = () => {
 		turnOffChipFiringModes('firing');
+		updateFiringMode();
+	}
+
+	document.getElementById('qReduce').onclick = () => {
+		turnOffChipFiringModes('qReduce');
 		updateFiringMode();
 	}
 
@@ -706,17 +722,9 @@ window.onload = function() {
 						const dharsNums = dhars(dharsStart);
 
 						document.getElementById('setFire').click();
-						
-						firingSet = new Set();
-	
-						dharsNums.forEach(num => {
-							console.log(nodes[num]);
-							firingSet.add(nodes[num]);
-						})
 
 						chipBags = [];
-
-						chipBags.push(firingSet);
+						chipBags.push(dharsNums);
 						
 					}
 				}
@@ -784,6 +792,14 @@ window.onload = function() {
 							index = chipBags.indexOf(set);
 							chipBags.splice(index);
 						}
+					}
+				}
+			} else if (coinfiringMode === 'qReduce') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						// If we have a node, q-reduce it!
+						runQReduce(currentObject);
 					}
 				}
 			}
