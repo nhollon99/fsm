@@ -551,6 +551,32 @@ function fireNode(node) {
 	incrementNode(node, -chipsToFireAway * modifier)
 }
 
+/*
+Created a borrowNode fxn in order to have the modifier be -1 to use in the Greedy alogithm without clicking shift 
+*/
+function borrowNode(node) { 
+	console.log(node);
+	var chipsToFireAway = 0;
+	// Look for edges to adjacent nodes
+	var modifier = -1; 
+	
+	var edges = leavingEdges(node);
+	for (var i = 0; i < edges.length; i++) {
+		var edge = edges[i];
+		var otherNode = edge.nodeB;
+		if (otherNode === node) {
+			otherNode = edge.nodeA;
+		}
+		var edgeWeight = 1;
+		if (edge.text !== '' && !isNaN(edge.text)) {
+			edgeWeight = parseInt(edge.text);
+		}
+		chipsToFireAway += edgeWeight;
+		incrementNode(otherNode, edgeWeight * modifier);
+	}
+	incrementNode(node, -chipsToFireAway * modifier)
+}
+
 window.onload = function() {
 
 	document.getElementById("clearCanvas").onclick = 
@@ -585,6 +611,10 @@ window.onload = function() {
 	document.getElementById('dhars').onclick = () => {
 		turnOffChipFiringModes('dhars');
 		updateFiringMode();
+	}
+
+	document.getElementById('greedy').onclick = () => {		
+		greedyHelper();
 	}
 
 	document.getElementById('setDelete').onclick = () => {
@@ -757,6 +787,9 @@ window.onload = function() {
 					}
 				}
 			}
+
+			
+			
 		}
 
 		draw();
@@ -911,6 +944,13 @@ document.onkeypress = function(e) {
 		return false;
 	}
 };
+
+//so greedy will run when we click greedy even without clicking somewhere on the canvas
+function greedyHelper(){
+	greedy(); //runs greedy but then should it return it as something? store as a variable?
+	
+	
+}
 
 function crossBrowserKey(e) {
 	e = e || window.event;
