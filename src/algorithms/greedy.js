@@ -11,11 +11,11 @@ function greedy(){
 
     
     //keep looping through until your divisor is out of debt or you've borrowed at every vertex
-    while(borrowed.length !== nodes.length && winning === false){ //one or two equals signs??
+    while(borrowed.length !== nodes.length && winning === false){ 
         nodes.forEach(node => {
             let chip = parseInt(node['text']);
             if(chip < 0){
-                borrowNode(node); //tried fireNode too but not actually sure how to make it update... -Heidi
+                borrowNode(node);
                 if(borrowed.indexOf(node) == -1){ //checking to see if the node you're borrowing at is already in the array
                     borrowed.push(node); //if its not, add it
                 }
@@ -27,13 +27,8 @@ function greedy(){
 
     //Greedy algorithm has finished so checking if winnable or unwinnable 
     if(borrowed.length == nodes.length){
-        console.log("unwinnable"); //eventually want this to tell a message to the user that this is unwinnable
+        alert("So sorry, your graph is unwinnable :(")
     }
-    else{
-        //return the updated, "won" graph and write a message that it's winnable
-    }
-    //draw();
-    //console.log("finished Algo"); //checking that it makes it here
 
 }
 
@@ -55,18 +50,4 @@ function checkWinning(){
 }
 
 
-/*
-Summary:
-- configured so that clicking "greedy" automatically runs this algorithm (no need to click anywhere else)
-- 
-
-Questions:
-- do we need to construct the adjacency list thing? What exactly is that for?
-- how to make the screen tell a message to the user?
-- what else does it return? return the new divisor or is that something that's just updated and doesn't need to return?
-
-- when you've clicked firing mode and greedy, then when you unclick firing mode to update values or something, reclicking firing mode 
-    makes it so greedy is also clicked again and then greedy runs when you "unclick" it
-- game continues to be stuck on borrowing in chip firing mode after having run greedy
-*/
 

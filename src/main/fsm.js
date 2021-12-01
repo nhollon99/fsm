@@ -223,22 +223,16 @@ function updateMode() {
 		mode = 'drawing';
 	}
 }
-//Add greedy logic statement here -Heidi
-//include greedy as a box to uncheck when you check other things (as part of turn off) -Heidi 
 
 function updateFiringMode() {
 	let dhars = document.getElementById('dhars');
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
 	let setDelete = document.getElementById('setDelete');
-	let greedy = document.getElementById('greedy'); //added greedy -Heidi
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
 		selectedObject = null;
-	} else if (greedy.checked) { //is this what I want to do? -Heidi 
-		coinfiringMode = 'greedy';
-		selectedObject = null;
-	}else if (set.checked) {
+	} else if (set.checked) {
 		coinfiringMode = 'setCreate';
 		selectedObject = null;
 	} else if (setFire.checked) {
@@ -530,10 +524,6 @@ function turnOffChipFiringModes(curMode) {
 	if (curMode !== 'setDelete') {
 		document.getElementById('setDelete').checked = false;
 	}
-
-	if (curMode !== 'greedy') { //is this right? -Heidi
-		document.getElementById('greedy').checked = false;
-	}
 }
 
 function fireNode(node) {
@@ -563,7 +553,6 @@ function fireNode(node) {
 
 /*
 Created a borrowNode fxn in order to have the modifier be -1 to use in the Greedy alogithm without clicking shift 
--Heidi 
 */
 function borrowNode(node) { 
 	console.log(node);
@@ -624,11 +613,8 @@ window.onload = function() {
 		updateFiringMode();
 	}
 
-	document.getElementById('greedy').onclick = () => {
-		turnOffChipFiringModes('greedy');
-		updateFiringMode();
+	document.getElementById('greedy').onclick = () => {		
 		greedyHelper();
-		draw();
 	}
 
 	document.getElementById('setDelete').onclick = () => {
