@@ -536,6 +536,11 @@ function turnOffChipFiringModes(curMode) {
 }
 
 function fireNode(node) {
+	//audioObj = new Audio("https://www.fesliyanstudios.com/play-mp3/6236");
+	//audioObj.addEventListener("canplay", event => {
+	//	/* the audio is now playable; play it if permissions allow */
+	//	audioObj.play();
+	//  });
 	console.log(node);
 	var chipsToFireAway = 0;
 	// Look for edges to adjacent nodes
