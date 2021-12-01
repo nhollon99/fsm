@@ -687,17 +687,9 @@ window.onload = function() {
 						const dharsNums = dhars(dharsStart);
 
 						document.getElementById('setFire').click();
-						
-						firingSet = new Set();
-	
-						dharsNums.forEach(num => {
-							console.log(nodes[num]);
-							firingSet.add(nodes[num]);
-						})
 
 						chipBags = [];
-
-						chipBags.push(firingSet);
+						chipBags.push(dharsNums);
 						
 					}
 				}

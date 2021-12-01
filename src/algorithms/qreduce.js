@@ -82,6 +82,7 @@ function debtToQ(distArr) {
         for (node of distArr[index]) {
             curNode = node;
             while (eval(curNode['text'].valueOf()) < 0) {
+                console.log("neg");
                 for (j = index; j < distArr.length; j++) {
                     borrowSet(distArr[j]);
                 }
@@ -92,12 +93,12 @@ function debtToQ(distArr) {
 }
 
 function qReduce(node) {
-    let nodeLabel = node.label;
+    let nodeLabel = node.label - 1;
     let legalFiringSet = new Set()
-    legalFiringSet.add(0)
-    while (legalFiringSet.size) {
-        legalFiringSet = dhars(nodeLabel) ;
-        fireSet(legalFiringSet) ;
+    legalFiringSet = dhars(nodeLabel);
+    while (legalFiringSet.size > 0) {
+        fireSet(legalFiringSet);
+        legalFiringSet = dhars(nodeLabel);
     }
 }
 
@@ -112,8 +113,13 @@ function borrowSet(set) {
 }
 
 function fireSet(legalFiringSet) {
+    if (legalFiringSet.size == 0) {
+        console.log("inhere");
+        console.log(legalFiringSet);
+        return
+    }
     for (node of nodes){
-        if (legalFiringSet.has(node.label)) {
+        if (legalFiringSet.has(node)) {
             fireNode(node);
         }
     }
