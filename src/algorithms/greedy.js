@@ -67,5 +67,6 @@ Questions:
 
 - when you've clicked firing mode and greedy, then when you unclick firing mode to update values or something, reclicking firing mode 
     makes it so greedy is also clicked again and then greedy runs when you "unclick" it
+- game continues to be stuck on borrowing in chip firing mode after having run greedy
 */
 
