@@ -248,6 +248,7 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else {
 		coinfiringMode = 'firing';
+		document.getElementById('firing').checked = true;
 		selectedObject = null;
 	}
 	displayRecord();
@@ -274,8 +275,11 @@ function updateScript(node, isFire) {
 	else {
 		script[node.label - 1] -= 1;
 	}
-	console.log(script);
 	firingscript.value = script.toString();
+}
+
+function resetScript() {
+	script.fill(0)
 }
 
 // Get an array of edges that are outgoing from this node
@@ -455,7 +459,6 @@ function getRandomColor() {
 function hexStrToNum(color) {
 	let colorArr = [];
 	let val = '';
-	console.log(color);
 	for (i = 1; i < 7; i+=2) {
 		val = '';
 		val += color.charAt(i);
@@ -509,7 +512,6 @@ function getNodeLabel(num) {
 // I couldnt decide if we should just make an 
 // array of allowed modes or not, easily changeable
 function turnOffChipFiringModes(curMode) {
-	console.log(curMode);
 	if (curMode !== 'firing') {
 		document.getElementById('firing').checked = false;
 	}
@@ -535,13 +537,15 @@ function turnOffChipFiringModes(curMode) {
 	}
 }
 
-function fireNode(node) {
+function fireNode(node, isRecording) {
 	//audioObj = new Audio("https://www.fesliyanstudios.com/play-mp3/6236");
 	//audioObj.addEventListener("canplay", event => {
 	//	/* the audio is now playable; play it if permissions allow */
 	//	audioObj.play();
 	//  });
-	console.log(node);
+	if (isRecording) {
+		updateScript(node, !shift);
+	}
 	var chipsToFireAway = 0;
 	// Look for edges to adjacent nodes
 	var modifier = 1;
@@ -565,30 +569,11 @@ function fireNode(node) {
 	incrementNode(node, -chipsToFireAway * modifier)
 }
 
-/*
-Created a borrowNode fxn in order to have the modifier be -1 to use in the Greedy alogithm without clicking shift 
-*/
-function borrowNode(node) { 
-	console.log(node);
-	var chipsToFireAway = 0;
-	// Look for edges to adjacent nodes
-	var modifier = -1; 
-	
-	var edges = leavingEdges(node);
-	for (var i = 0; i < edges.length; i++) {
-		var edge = edges[i];
-		var otherNode = edge.nodeB;
-		if (otherNode === node) {
-			otherNode = edge.nodeA;
-		}
-		var edgeWeight = 1;
-		if (edge.text !== '' && !isNaN(edge.text)) {
-			edgeWeight = parseInt(edge.text);
-		}
-		chipsToFireAway += edgeWeight;
-		incrementNode(otherNode, edgeWeight * modifier);
+function fireSet(firingSet) {
+	let isRecording = document.getElementById('record').checked
+	for (node of firingSet) {
+		fireNode(node, isRecording)
 	}
-	incrementNode(node, -chipsToFireAway * modifier)
 }
 
 window.onload = function() {
@@ -625,7 +610,7 @@ window.onload = function() {
 	}
 
 	document.getElementById('greedy').onclick = () => {		
-		greedyHelper();
+		greedy();
 	}
 
 	document.getElementById('setDelete').onclick = () => {
@@ -655,6 +640,7 @@ window.onload = function() {
 	}
 
 	document.getElementById('record').onclick = () => {
+		resetScript();
 		displayRecord();
 	}
 
@@ -694,17 +680,11 @@ window.onload = function() {
 						let isRecording = document.getElementById('record').checked;
 						if (firingSet.has(currentObject)) {
 							firingSet.forEach(node => {
-								fireNode(node);
-								if (isRecording){
-									updateScript(node, !shift);
-								}
+								fireNode(node, isRecording);
 							})
 							firingSet = new Set();
 						} else {
-							fireNode(currentObject);
-							if (isRecording){
-								updateScript(currentObject, !shift);
-							}
+							fireNode(currentObject, isRecording);
 						}
 					}
 				}
@@ -749,19 +729,11 @@ window.onload = function() {
 						let sets = findAllSets(currentObject);
 						let isRecording = document.getElementById('record').checked;
 						for (set of sets) {
-							set.forEach(node => {
-								fireNode(node);
-								if (isRecording){
-									updateScript(node, !shift);
-								}
-							})
+							fireSet(set)
 						}
 
 						if (sets.length === 0) {
-							fireNode(currentObject);
-							if (isRecording){
-								updateScript(currentObject, !shift);
-							}
+							fireNode(currentObject, isRecording);
 						}
 					}
 				}
@@ -833,15 +805,10 @@ window.onload = function() {
 				script.push(0);
 				resetCaret();
 				draw();
-			} else if(selectedObject instanceof Node) {
-				selectedObject.isAcceptState = !selectedObject.isAcceptState;
-				draw();
 			}
 		}
-		else if (mode === 'coinfiring') {
-			// Do nothing special
-		}
 	};
+
 
 	canvas.onmousemove = function(e) {
 		var mouse = crossBrowserRelativeMousePos(e);
@@ -859,9 +826,7 @@ window.onload = function() {
 					currentLink = new TemporaryLink(originalClick, mouse, checkDirected());
 				}
 			} else {
-				if(targetNode == selectedObject) {
-					currentLink = new SelfLink(selectedObject, mouse, checkDirected());
-				} else if(targetNode != null) {
+				if(targetNode != null) {
 					currentLink = new Link(selectedObject, targetNode, checkDirected());
 				} else {
 					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
@@ -961,13 +926,6 @@ document.onkeypress = function(e) {
 	}
 };
 
-//so greedy will run when we click greedy even without clicking somewhere on the canvas
-function greedyHelper(){
-	greedy(); //runs greedy but then should it return it as something? store as a variable?
-	
-	
-}
-
 function crossBrowserKey(e) {
 	e = e || window.event;
 	return e.which || e.keyCode;
@@ -1038,7 +996,6 @@ function saveAsLaTeX() {
 	selectedObject = oldSelectedObject;
 	var texData = exporter.toLaTeX();
 	output(texData);
-	console.log(texData);
 }
 
 function saveAsJSON() {
