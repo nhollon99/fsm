@@ -1,11 +1,17 @@
-
-//should return the updated graph with the result after the greedy algorithm has run
-//also want it to declare whether its winnable or not (particularly if its not)
-
 function greedy(){
+    //borrowing
+    shift = true
+
+    //click record script automatically
+    let record = document.getElementById('record')
+    if (!record.checked) {
+        record.click()
+    } else {
+        resetScript()
+    }
+
     const graph = makeAdjList(); //calls array that pairs edges and vertices
-    //let nodes = JSON.parse(localStorage['fsm'])['nodes'];
-    console.log(nodes); 
+
     const borrowed = []; //to keep track of the nodes we've borrowed at
     let winning = false; 
 
@@ -15,11 +21,10 @@ function greedy(){
         nodes.forEach(node => {
             let chip = parseInt(node['text']);
             if(chip < 0){
-                borrowNode(node);
+                fireNode(node, true);
                 if(borrowed.indexOf(node) == -1){ //checking to see if the node you're borrowing at is already in the array
                     borrowed.push(node); //if its not, add it
                 }
-                console.log(borrowed);
             }
         });
         winning = checkWinning(); //checks to see if the divisor is out of debt
@@ -30,12 +35,12 @@ function greedy(){
         alert("So sorry, your graph is unwinnable :(")
     }
 
+    //stop borrowing
+    shift = false
 }
 
 //returns true if a given divisor is winning, otherwise returns false
 function checkWinning(){
-    //const graph = makeAdjList(); //calls array that pairs edges and vertices
-    //let nodes = JSON.parse(localStorage['fsm'])['nodes'];
     let winning = true; 
 
     nodes.forEach(node => {
@@ -45,7 +50,6 @@ function checkWinning(){
         }
     });
 
-    console.log(winning);
     return winning; //if you iterate through each node and none are in debt, this is a winning divisor
 }
 
