@@ -1,4 +1,4 @@
-function greedy(){
+function greedy(quiet = true){
     //borrowing
     shift = true
 
@@ -31,12 +31,13 @@ function greedy(){
     }
 
     //Greedy algorithm has finished so checking if winnable or unwinnable 
-    if(borrowed.length == nodes.length){
+    if(borrowed.length == nodes.length && quiet){
         alert("So sorry, your graph is unwinnable :(")
     }
 
     //stop borrowing
     shift = false
+    return winning
 }
 
 //returns true if a given divisor is winning, otherwise returns false

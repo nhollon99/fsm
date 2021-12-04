@@ -231,6 +231,7 @@ function updateFiringMode() {
 	let setFire = document.getElementById('setFire');
 	let setDelete = document.getElementById('setDelete');
 	let qReduce = document.getElementById('qReduce');
+	let gonality = document.getElementById('gonality');
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
 		selectedObject = null;
@@ -245,6 +246,9 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else if (qReduce.checked) {
 		coinfiringMode = 'qReduce';
+		selectedObject = null;
+	} else if (gonality.checked) {
+		coinfiringMode = 'gonality';
 		selectedObject = null;
 	} else {
 		coinfiringMode = 'firing';
@@ -535,6 +539,10 @@ function turnOffChipFiringModes(curMode) {
 	if (curMode !== 'qReduce') {
 		document.getElementById('qReduce').checked = false;
 	}
+	
+	if (curMode !== 'gonality') {
+		document.getElementById('gonality').checked = false;
+	}
 }
 
 function fireNode(node, isRecording) {
@@ -631,6 +639,11 @@ window.onload = function() {
 
 	document.getElementById('firing').onclick = () => {
 		turnOffChipFiringModes('firing');
+		updateFiringMode();
+	}
+
+	document.getElementById('gonality').onclick = () => {
+		turnOffChipFiringModes('gonality');
 		updateFiringMode();
 	}
 
@@ -772,6 +785,13 @@ window.onload = function() {
 					if (currentObject instanceof Node) {
 						// If we have a node, q-reduce it!
 						runQReduce(currentObject);
+					}
+				}
+			} else if (coinfiringMode === 'gonality') {
+				var currentObject = selectObject(mouse.x, mouse.y);
+				if (currentObject != null) {
+					if (currentObject instanceof Node) {
+						gonality(currentObject)
 					}
 				}
 			}
