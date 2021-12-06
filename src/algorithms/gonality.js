@@ -52,8 +52,8 @@ function getLastNonZero(arr) {
 }
 
 function zeroAfter(arr, pos) {
-    console.log(pos)
-    console.log(arr)
+    //console.log(pos)
+    //console.log(arr)
     for (let i = pos; i < arr.length; i++) {
         
         arr[i] = 0
@@ -63,7 +63,7 @@ function zeroAfter(arr, pos) {
 
 function playGonalityGame(divisor) {
 
-    console.log(`Playing with ${divisor}`)
+    // console.log(`Playing with ${divisor}`)
     // Remove a chip from each node, and run greedy. 
     // Update chip values
     for (node in nodes) {
@@ -81,6 +81,11 @@ function playGonalityGame(divisor) {
         }
     }
     console.log(`Winning divisor: ${divisor}`);
+    // Redraw the divisor
+    for (node in nodes) {
+        nodes[node]['text'] = `${divisor[node]}`;
+    }
+    
     return true;
     
 }
@@ -114,7 +119,13 @@ function permuteDivisor(divisor, totDegree) {
 function recurseDivisor(divisor, chips_left, position) {
     let ret = false
     if (chips_left == 0) {
-        divisor = zeroAfter(divisor, position)
+        //console.log(`Pre ${divisor}`)
+        //divisor = zeroAfter(divisor, position)
+        if (position < divisor.length) {
+            divisor[position] = 0
+        }
+        //console.log(`Post ${divisor}`)
+        //divisor[position-1] = 0
         if (playGonalityGame(divisor)) {
             return true
         }
