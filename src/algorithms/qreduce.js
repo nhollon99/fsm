@@ -72,12 +72,32 @@ function debtToQ(distArr) {
     }
 }
 
-function qReduce(node) {
+function wait(ms) {
+    curSec = Date.now();
+
+    while (Date.now() < (curSec + ms)) {
+
+    }
+}
+
+async function qReduce(node) {
     let nodeLabel = node.label - 1;
     let legalFiringSet = new Set()
     legalFiringSet = dhars(nodeLabel);
-    while (legalFiringSet.size > 0) {
-        fireSet(legalFiringSet);
-        legalFiringSet = dhars(nodeLabel);
+    let visualize = true
+
+    if (visualize) {
+        while (legalFiringSet.size > 0) {
+            draw();
+            await wait(1000);
+            fireSet(legalFiringSet);
+            legalFiringSet = dhars(nodeLabel);
+        }
+    } else {
+        while (legalFiringSet.size > 0) {
+            fireSet(legalFiringSet);
+            legalFiringSet = dhars(nodeLabel);
+        }
     }
+    
 }

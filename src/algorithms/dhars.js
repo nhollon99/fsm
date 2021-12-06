@@ -36,6 +36,9 @@ function dhars(node) {
         ret.add(nodes[num]);
     }
     
+    chipBags = [];
+    chipBags.push(ret);
+
     console.log(legalFire);
     return ret; //returning legal firing set
 }

@@ -596,7 +596,7 @@ window.onload = function() {
 
 	document.getElementById("clearNodes").onclick = function() {
 		for(var i = 0; i < nodes.length; i++) {
-			nodes[i].text = '';
+			nodes[i].text = '0';
 		}
 		draw();
 	};
