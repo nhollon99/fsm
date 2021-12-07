@@ -145,6 +145,7 @@ var originalClick;
 var firingSet = new Set();
 var script = [];
 var chipBags = [];
+var visualize = false;
 var colors = ['purple','gold', 'blue'];
 // allowed modes:
 // 'drawing'
@@ -163,52 +164,6 @@ var mode = 'drawing';
 // TODO: 'qReduce'
 let coinfiringMode = 'fire';
 
-/*
- * Takes in a node, and checks if it is 
- * in any set current stored. If it is, 
- * then we return the number of the set it is in.
- * If the node is in multiple sets, 
- * returns the total number of sets, indicating 
- * Overlap. 
- */
-function isInSet(node) {
-	let ret = -1;
-	for (set in chipBags) {
-		if (chipBags[set].has(node)) {
-			if (ret < chipBags.length) {
-				ret = set;
-			} else {
-				ret = chipBags.length;
-			}
-		}
-	}
-
-	return ret;
-}
-
-function findAllSets(node) {
-	let ret = [];
-	for (set in chipBags) {
-		if (chipBags[set].has(node)) {
-			ret.push(chipBags[set]);
-		}
-	}
-	return ret;
-}
-
-function linkInSet(link) {
-	let ret = -1;
-	for (set in chipBags) {
-		if ((chipBags[set].has(link['nodeA'])) && (chipBags[set].has(link['nodeB']))) {
-			if (ret < chipBags.length) {
-				ret = set;
-			} else {
-				ret = chipBags.length;
-			}
-		}
-	}
-	return ret;
-}
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
@@ -449,49 +404,6 @@ function snapNode(node) {
 	}
 }
 
-function getRandomColor() {
-	// We can just generate a random hex number
-	do {
-		ret = '#';
-		for (i = 0; i < 3; i++) {
-			ret += Math.ceil(Math.random()*256).toString(16);
-		}
-	} while (colorDistance(ret) <= 1);
-	return ret;
-}
-
-function hexStrToNum(color) {
-	let colorArr = [];
-	let val = '';
-	for (i = 1; i < 7; i+=2) {
-		val = '';
-		val += color.charAt(i);
-		val += color.charAt(i+1);
-		colorArr.push(Number(val));
-	}
-	return colorArr;
-}
-
-function colorDistance(color) {
-	// Color is in hex, so we convert
-	let minDist = Infinity;
-	let dist = 0;
-	let colorArr = hexStrToNum(color);
-
-	// Now we need to go through all colors and check distance
-	let compColor = [];
-	for (j = 2; j < (colors.length - 1); j+= 1) {
-		compColor = hexStrToNum(colors[j]);
-		dist = Math.sqrt((colorArr[0] - compColor[0]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2);
-		if (minDist > dist) {
-			minDist = dist;
-		}
-	}
-	return minDist;
-
-	
-}
-
 
 
 function getNodeNum(node) {
@@ -577,19 +489,13 @@ function fireNode(node, isRecording) {
 	incrementNode(node, -chipsToFireAway * modifier)
 }
 
-function fireSet(firingSet) {
-	let isRecording = document.getElementById('record').checked
-	for (node of firingSet) {
-		fireNode(node, isRecording)
-	}
-}
-
 window.onload = function() {
 
 	document.getElementById("clearCanvas").onclick = 
 	function(){
 		var element = document.getElementById('coinfiring');
 		element.checked = false;
+		chipBags = [];
 		localStorage['fsm'] = '';
 		location.reload();
 	};
@@ -706,16 +612,18 @@ window.onload = function() {
 				if (currentObject != null) {
 					if (currentObject instanceof Node) {
 						// need to find this node in local storage to get it's number
+						chipBags = [];
 						let dharsStart = 0;
 						for (let i = 0; i < nodes.length; i++) {
 							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
 								dharsStart = i;
 							}
 						}
-						const dharsNums = dhars(dharsStart);
+						let dharsNums = dhars(dharsStart);
 
 						document.getElementById('setFire').click();
-
+						console.log("Dhars num")
+						console.log(dharsNums)
 						chipBags = [];
 						chipBags.push(dharsNums);
 						
