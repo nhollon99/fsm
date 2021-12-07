@@ -9,6 +9,19 @@ function checkDirected() {
 };
 
 
+/*
+Gets the link number to render parallel edges separately
+*/
+function getLinkNumber(nodeA, nodeB) {
+	let linkNumber = 1
+	for (link of links) {
+		if ((link.nodeA == nodeA && link.nodeB == nodeB) || (link.nodeB == nodeA && link.nodeA == nodeB)) {
+			linkNumber += 1
+		}
+	}
+	return linkNumber
+}
+
 function convertLatexShortcuts(text) {
 	// html greek characters
 	for(var i = 0; i < greekLetterNames.length; i++) {
@@ -827,7 +840,7 @@ window.onload = function() {
 				}
 			} else {
 				if(targetNode != null) {
-					currentLink = new Link(selectedObject, targetNode, checkDirected());
+					currentLink = new Link(selectedObject, targetNode, checkDirected(), getLinkNumber(selectedObject, targetNode));
 				} else {
 					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
 				}

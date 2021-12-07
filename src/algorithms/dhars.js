@@ -1,16 +1,17 @@
 function dhars(node) {
     const graph = makeAdjList(); //calls array that pairs edges and vertices
-    //let nodes = JSON.parse(localStorage['fsm'])['nodes'];
     
-    //list of integers corresponding to the chips on nodes 0, 1, 2, ...
-    let chips = [];
+    let component = buildDistanceArray(nodes[node])
+
+    let chips = new Map();
     let legalFire = new Set();
-    let nodeNum = 0;
-    nodes.forEach(nodeIt => { 
-        chips.push(parseInt(nodeIt['text'])); //adding chip values of each vertex to chips array
-        legalFire.add(nodeNum); //adding all vertices to legal firing set to start
-        nodeNum += 1;
-    });
+
+    for (set of component) {
+        for (nodeIt of set) {
+            chips.set(nodeIt.label - 1, parseInt(nodeIt.text))
+            legalFire.add(nodeIt.label - 1)
+        }
+    }
 
     let q = [];
 
@@ -23,8 +24,8 @@ function dhars(node) {
         let n = q.shift();
         let neighbors = graph[n];
         neighbors.forEach(neighbor => {
-            chips[neighbor] -= 1;
-            if (chips[neighbor] < 0 && legalFire.has(neighbor)) {
+            chips.set(neighbor, chips.get(neighbor) - 1);
+            if (chips.get(neighbor) < 0 && legalFire.has(neighbor)) {
                 q.push(neighbor);
                 legalFire.delete(neighbor);
             }
@@ -36,6 +37,5 @@ function dhars(node) {
         ret.add(nodes[num]);
     }
     
-    console.log(legalFire);
     return ret; //returning legal firing set
 }

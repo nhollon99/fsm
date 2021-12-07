@@ -180,7 +180,7 @@ if (typeof btoa == 'undefined') {
 			<li><b>Add a state:</b> double-click on the canvas</li>
 			<li><b>Add an arrow:</b> shift-drag on the canvas</li>
 			<li><b>Move something:</b> drag it around</li>
-			<li><b>Delete something:</b> click it and press the delete key (not the backspace key)</li>
+			<li><b>Delete something:</b> click it and press the delete key (not the backspace key). On a mac, hold down the function key and press delete at the same time.</li>
 		</ul><ul>
 			<li><b>Make accept state:</b> double-click on an existing state</li>
 			<li><b>Type numeric subscript:</b> put an underscore before the number (like "S_0")</li>
@@ -193,6 +193,14 @@ if (typeof btoa == 'undefined') {
 			<li>Shift clicking undoes the "firing" of that vertex</li>
 			<li>Empty vertices are treated as having zero chips on them</li>
 			<li>An edge with a numerical label indicates the "weight" of the edge, causing that many chips to be fired along that edge instead of only one</li>
+			<li><b>Dhar's Burning Algorithm:</b> Click on a vertex to run Dhar’s burning algorithm on that vertex. This determines whether there is a legal firing set to move more chips onto that vertex.</li>
+			<li><b>q-reduce:</b> Click on a vertex. This function moves all debt to that vertex and then performs all possible legal firing moves to arrive at a divisor that is q-reduced. If all debt is eliminated, the divisor is winnable. If there is still debt on q, the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to q-reduce.</li>
+			<li><b>Firing:</b> Fire individual vertices (as described above) by clicking on them.</li>
+			<li><b>Set Create:</b> Click on vertices to group them together in a firing set.</li>
+			<li><b>Set Fire:</b> Click on a created set to remove it as a firing option.</li>
+			<li><b>Set Delete:</b> Click on a pre-created set (that was made using set create mode) in order to fire all vertices in the set.</li>
+			<li><b>Record Firing Script:</b> When this box is checked, the firing/borrowing moves that you perform are recorded. The script is automatically cleared and then recorded when you choose to q-reduce on a vertex or run the greedy algorithm.</li>
+			<li><b>Greedy Algorithm:</b>Click to run the Greedy algorithm to determine if your divisor is winnable. This attempts to borrow from every vertex and if a winnable divisor is reached first, that is returned, otherwise it signals that the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to run the greedy algorithm.</li>
 		</ul>
 		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
 	</div>
