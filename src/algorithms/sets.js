@@ -103,6 +103,11 @@ function linkInSet(link) {
 	return ret;
 }
 
+function makeBag(set) {
+	chipBags = [];
+	chipBags.push(set);
+}
+
 function setsToBags(setArr) {
     chipBags = [];
     for (set of setArr) {

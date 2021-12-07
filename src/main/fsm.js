@@ -337,7 +337,11 @@ function drawUsing(c) {
 		col = isInSet(nodes[i])
 		if ((chipBags.length > 0) && col > -1) {
 			c.fillStyle = c.strokeStyle = colors[col];
-			c.lineWidth = 5;
+			if (colors[col] == "black") {
+				c.lineWidth = 1;
+			} else {
+				c.lineWidth = 5;
+			}
 		}
 		nodes[i].draw(c);
 	}
@@ -348,7 +352,11 @@ function drawUsing(c) {
 		col = linkInSet(links[i])
 		if ((chipBags.length > 0) && (col > -1)) {
 			c.fillStyle = c.strokeStyle = colors[col];
-			c.lineWidth = 3;
+			if (colors[col] == "black") {
+				c.lineWidth = 1;
+			} else {
+				c.lineWidth = 3;
+			}
 		}
 		links[i].draw(c);
 	}
@@ -569,7 +577,7 @@ window.onload = function() {
 	restoreBackup();
 	draw();
 
-	canvas.onmousedown = function(e) {
+	canvas.onmousedown = async function(e) {
 		var mouse = crossBrowserRelativeMousePos(e);
 
 		if (mode === 'drawing') {
@@ -619,14 +627,10 @@ window.onload = function() {
 								dharsStart = i;
 							}
 						}
-						let dharsNums = dhars(dharsStart);
-
-						document.getElementById('setFire').click();
-						console.log("Dhars num")
-						console.log(dharsNums)
-						chipBags = [];
-						chipBags.push(dharsNums);
-						
+						if (document.getElementById('visualize').checked) {
+							await drawDhars(dharsStart);
+						}
+						makeBag(dhars(dharsStart));						
 					}
 				}
 			} else if (coinfiringMode === 'setAdd') {
