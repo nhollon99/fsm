@@ -23,7 +23,7 @@ function gonality(curNode) {
         //eval = permuteDivisor(divisor, gonDegree)
         if (eval) {
             console.log(gonDegree);
-            alert(`Gonality of this graph is: ${gonDegree}`)
+            alert(`Gonality of this graph: ${gonDegree}`)
             return gonDegree;
         }
         gonDegree++;
@@ -31,7 +31,7 @@ function gonality(curNode) {
 
     // Should never get here
 
-    alert(`Gonality of this graph is: ${gonDegree}`)
+    alert(`Gonality of this graph: ${gonDegree}`)
     return gonDegree;
 
 }
