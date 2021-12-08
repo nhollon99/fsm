@@ -7,11 +7,8 @@ async function runQReduce(node) {
         resetScript()
     }
 
-    if (document.getElementById('visualize').checked) {
-        await debtToQ(buildDistanceArray(node));
-    } else {
-        debtToQ(buildDistanceArray(node));
-    }
+    await debtToQ(buildDistanceArray(node));
+    //debtToQ(buildDistanceArray(node));
     qReduce(node);
 }
 

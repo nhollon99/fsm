@@ -23,12 +23,15 @@ function gonality(curNode) {
         //eval = permuteDivisor(divisor, gonDegree)
         if (eval) {
             console.log(gonDegree);
+            alert(`Gonality of this graph is: ${gonDegree}`)
             return gonDegree;
         }
         gonDegree++;
     }
 
     // Should never get here
+
+    alert(`Gonality of this graph is: ${gonDegree}`)
     return gonDegree;
 
 }

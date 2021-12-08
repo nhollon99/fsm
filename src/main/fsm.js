@@ -345,7 +345,7 @@ function drawUsing(c) {
 		}
 
 		if (nodes[i]['label'] == undefined) {
-			nodes[i]['label'] = i;
+			nodes[i]['label'] = i + 1;
 		}
 
 		nodes[i].draw(c);
@@ -542,6 +542,9 @@ window.onload = function() {
 	document.getElementById('greedy').onclick = () => {		
 		greedy();
 	}
+	document.getElementById('gonality').onclick = () => {		
+		gonality(nodes[0]);
+	}
 
 	document.getElementById('setDelete').onclick = () => {
 		turnOffChipFiringModes('setDelete');
@@ -561,11 +564,6 @@ window.onload = function() {
 
 	document.getElementById('firing').onclick = () => {
 		turnOffChipFiringModes('firing');
-		updateFiringMode();
-	}
-
-	document.getElementById('gonality').onclick = () => {
-		turnOffChipFiringModes('gonality');
 		updateFiringMode();
 	}
 

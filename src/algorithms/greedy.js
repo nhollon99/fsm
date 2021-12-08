@@ -22,7 +22,7 @@ function greedy(quiet = true){
             let chip = parseInt(node['text']);
             if(chip < 0){
                 fireNode(node, true);
-                if(borrowed.indexOf(node) == -1){ //checking to see if the node you're borrowing at is already in the array
+                if(borrowed.indexOf(node) == -1) { //checking to see if the node you're borrowing at is already in the array
                     borrowed.push(node); //if its not, add it
                 }
             }
