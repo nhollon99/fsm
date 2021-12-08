@@ -343,6 +343,11 @@ function drawUsing(c) {
 				c.lineWidth = 5;
 			}
 		}
+
+		if (nodes[i]['label'] == undefined) {
+			nodes[i]['label'] = i;
+		}
+
 		nodes[i].draw(c);
 	}
 
@@ -515,9 +520,12 @@ window.onload = function() {
 		draw();
 	};
 
-	document.getElementById('importButton').onclick = function() {
+	document.getElementById('importButton').onclick = async function() {
 		var element = document.getElementById('output');
+		console.log(element.value)
 		localStorage['fsm'] = element.value;
+		// Ok, fsm is now a string
+		console.log(localStorage['fsm'])
 		location.reload();
 	};
 
