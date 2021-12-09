@@ -170,10 +170,9 @@ var mode = 'drawing';
 // 'setCreate'
 // 'setFire'
 // 'setAdd' -- Hidden Mode
-// 'setDelete'
+// 'setClear'
 // 'qReduce'
-// TODO: 'greedy'
-// TODO: 'qReduce'
+// 'greedy'
 let coinfiringMode = 'fire';
 
 /*
@@ -242,7 +241,6 @@ function updateFiringMode() {
 	let dhars = document.getElementById('dhars');
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
-	let setDelete = document.getElementById('setDelete');
 	let qReduce = document.getElementById('qReduce');
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
@@ -252,9 +250,6 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else if (setFire.checked) {
 		coinfiringMode = 'setFire';
-		selectedObject = null;
-	} else if (setDelete.checked) {
-		coinfiringMode = 'setDelete';
 		selectedObject = null;
 	} else if (qReduce.checked) {
 		coinfiringMode = 'qReduce';
@@ -541,10 +536,6 @@ function turnOffChipFiringModes(curMode) {
 		document.getElementById('setFire').checked = false;
 	}
 
-	if (curMode !== 'setDelete') {
-		document.getElementById('setDelete').checked = false;
-	}
-
 	if (curMode !== 'qReduce') {
 		document.getElementById('qReduce').checked = false;
 	}
@@ -626,9 +617,8 @@ window.onload = function() {
 		greedy();
 	}
 
-	document.getElementById('setDelete').onclick = () => {
-		turnOffChipFiringModes('setDelete');
-		updateFiringMode();
+	document.getElementById('setClear').onclick = () => {		
+		chipBags = [];
 	}
 	
 	document.getElementById('setCreate').onclick = () => {
@@ -657,6 +647,37 @@ window.onload = function() {
 		displayRecord();
 	}
 
+	document.getElementById('drawPath').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawPath(parseInt(n))
+		}
+	}
+
+
+	document.getElementById('drawCycle').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawCycle(parseInt(n))
+		}
+	}
+
+	document.getElementById('drawComplete').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawComplete(parseInt(n))
+		}
+	}
+
+	document.getElementById('drawCompleteBipartite').onclick = () => {
+		let n = prompt("Number of vertices in first part")
+		let m = prompt("Number of vertices in second part")
+		if (n != null) {
+			drawCompleteBipartite(parseInt(n), parseInt(m))
+		}
+		
+	}
+	
 	updateMode();
 
 	canvas = document.getElementById('canvas');
@@ -764,19 +785,6 @@ window.onload = function() {
 
 						// Hidden mode;
 						coinfiringMode = 'setAdd';
-					}
-				}
-			} else if (coinfiringMode === 'setDelete') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// Take the current set, and delete the sets:
-						let sets = findAllSets(currentObject);
-						let index = 0;
-						for (set of sets) {
-							index = chipBags.indexOf(set);
-							chipBags.splice(index);
-						}
 					}
 				}
 			} else if (coinfiringMode === 'qReduce') {

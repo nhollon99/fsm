@@ -158,19 +158,30 @@ if (typeof btoa == 'undefined') {
 			<input type="checkbox" id="firing"> Firing
 			<input type="checkbox" id="setCreate"> Set Create
 			<input type="checkbox" id="setFire"> Set Firing
-			<input type="checkbox" id="setDelete"> Set Delete
 			<input type="checkbox" id="record"> Record Firing Script <br/>
 			<input type="text" id="firingscript" readonly class="centerelement">
-			<button id="greedy" style="margin-top: 5px"> Greedy Algorithm 
+			<button id="greedy" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Greedy Algorithm 
+			<button id="setClear" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Clear Firing Set
 		</div>
 		<div class="center" style="margin-top: 5px; margin-bottom: 0px;">
-			<button id="clearNodes">Clear all Nodes</button>
-			<button id="clearCanvas">Clear the Canvas</button>
+			<button id="drawPath" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Path
+			<button id="drawCycle" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Cycle
+			<button id="drawComplete" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Complete Graph
+			<button id="drawCompleteBipartite" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Complete Bipartite Graph
+		</div>
+		<div class="center" style="margin-top: 5px; margin-bottom: 0px;">
+			<button id="clearNodes" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear all Nodes</button>
+			<button id="clearCanvas" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear the Canvas</button>
 		</div>
 	</div>
+
+	
 	<canvas id="canvas" width="800" height="600">
 		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
 	</canvas>
+	
+
+
 	<div>
 		<p class="center">Export as: <a href="javascript:saveAsJSON()">JSON</a> | <a href="javascript:saveAsPNG()">PNG</a> | <a href="javascript:saveAsSVG()">SVG</a> | <a href="javascript:saveAsLaTeX()">LaTeX</a> | Import from: <a href="javascript:loadFromJSON()">JSON</a> </p>
 		<textarea id="output"></textarea>
@@ -193,14 +204,19 @@ if (typeof btoa == 'undefined') {
 			<li>Shift clicking undoes the "firing" of that vertex</li>
 			<li>Empty vertices are treated as having zero chips on them</li>
 			<li>An edge with a numerical label indicates the "weight" of the edge, causing that many chips to be fired along that edge instead of only one</li>
-			<li><b>Dhar's Burning Algorithm:</b> Click on a vertex to run Dhar’s burning algorithm on that vertex. This determines whether there is a legal firing set to move more chips onto that vertex.</li>
+			<li><b>Dhar's Burning Algorithm:</b> Click on a vertex to run Dhar’s burning algorithm on that vertex. This determines whether there is a legal firing set to move more chips onto that vertex. The legal firing set is highlighted or a message appears to tell you that there is no legal firing set.</li>
 			<li><b>q-reduce:</b> Click on a vertex. This function moves all debt to that vertex and then performs all possible legal firing moves to arrive at a divisor that is q-reduced. If all debt is eliminated, the divisor is winnable. If there is still debt on q, the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to q-reduce.</li>
 			<li><b>Firing:</b> Fire individual vertices (as described above) by clicking on them.</li>
 			<li><b>Set Create:</b> Click on vertices to group them together in a firing set.</li>
 			<li><b>Set Fire:</b> Click on a created set to remove it as a firing option.</li>
-			<li><b>Set Delete:</b> Click on a pre-created set (that was made using set create mode) in order to fire all vertices in the set.</li>
+			<li><b>Clear Firing Set</b> Click on this button to clear the firing set that you created in set create mode.</li>
 			<li><b>Record Firing Script:</b> When this box is checked, the firing/borrowing moves that you perform are recorded. The script is automatically cleared and then recorded when you choose to q-reduce on a vertex or run the greedy algorithm.</li>
 			<li><b>Greedy Algorithm:</b>Click to run the Greedy algorithm to determine if your divisor is winnable. This attempts to borrow from every vertex and if a winnable divisor is reached first, that is returned, otherwise it signals that the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to run the greedy algorithm.</li>
+			<li><b>Draw Path:</b> Click on this button and enter the number of vertices that you would like to have in the path. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Cycle:</b> Click on this button and enter the number of vertices that you would like to have in the cycle. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Complete:</b> Click on this button and enter the number of vertices that you would like to have in the complete graph. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Complete Bipartite:</b> Click on this button and enter the number of vertices that you would like to have on each side of the complete bipartite graph. The maximum number of vertices allowed per side is 8.</li>
+
 		</ul>
 		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
 	</div>

@@ -36,6 +36,10 @@ function dhars(node) {
     for (num of legalFire) {
         ret.add(nodes[num]);
     }
+
+    if(ret.size == 0){
+        alert("So sorry, no legal firing set was found :(")
+    }
     
     return ret; //returning legal firing set
 }
