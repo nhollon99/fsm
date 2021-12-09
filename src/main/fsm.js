@@ -539,8 +539,15 @@ window.onload = function() {
 		updateFiringMode();
 	}
 
-	document.getElementById('greedy').onclick = () => {		
-		greedy();
+	document.getElementById('greedy').onclick = async function() {
+		console.log("inthis function?")
+		if (document.getElementById('visualize').checked) {
+			drawGreedy();
+		} else {
+			greedy();
+		}
+
+		draw();
 	}
 	document.getElementById('gonality').onclick = () => {		
 		gonality(nodes[0]);

@@ -7,7 +7,7 @@
 function gonality(curNode) {
     // Upper Bound of the number of nodes
     let divisor = [];
-    let gonDegree = 2;
+    let gonDegree = 1;
 
     for (node in nodes) {
         divisor.push(0);
@@ -20,7 +20,6 @@ function gonality(curNode) {
         console.log(`Clean Divisor ${divisor}`)
         
         eval = recurseDivisor(divisor, gonDegree, 0)
-        //eval = permuteDivisor(divisor, gonDegree)
         if (eval) {
             console.log(gonDegree);
             alert(`Gonality of this graph: ${gonDegree}`)
@@ -34,34 +33,6 @@ function gonality(curNode) {
     alert(`Gonality of this graph: ${gonDegree}`)
     return gonDegree;
 
-}
-
-function sumLeft(arr, stop) {
-    let ret = 0;
-    for (i = 0; i < stop; i++) {
-        ret += arr[i]
-    }
-    return ret;
-}
-
-function getLastNonZero(arr) {
-    let ret = 0;
-    for (ele in arr) {
-        if (arr[ele] != 0) {
-            ret = ele
-        }
-    }
-    return ret
-}
-
-function zeroAfter(arr, pos) {
-    //console.log(pos)
-    //console.log(arr)
-    for (let i = pos; i < arr.length; i++) {
-        
-        arr[i] = 0
-    }
-    return arr
 }
 
 function playGonalityGame(divisor) {
@@ -93,37 +64,11 @@ function playGonalityGame(divisor) {
     
 }
 
-function permuteDivisor(divisor, totDegree) {
-    divisor[divisor.length - 1] = totDegree
-    console.log(divisor)
-    while(divisor[0] != totDegree) {
-        if (playGonalityGame(divisor)) {
-            return true
-        }
-        index = getLastNonZero(divisor)
-        // Add one to previous
-        // send current to 0
-        divisor[index - 1] += 1
-        divisor[index] = 0
-
-        // Send remainder to end
-
-        divisor[divisor.length - 1] =  totDegree - sumLeft(divisor, index)
-        console.log(divisor)
-    }
-    return playGonalityGame(divisor)
-}
-
-/*
- * Recursive version doesn't work for some reason
- * cant even get them all to print
- */
 
 function recurseDivisor(divisor, chips_left, position) {
     let ret = false
     if (chips_left == 0) {
         //console.log(`Pre ${divisor}`)
-        //divisor = zeroAfter(divisor, position)
         if (position < divisor.length) {
             divisor[position] = 0
         }
@@ -148,24 +93,3 @@ function recurseDivisor(divisor, chips_left, position) {
     }
     return false
 }
-
-/*
- * 0111
- * 0120
- * 0201
- * 0210
- * 0300
- * 1002
- * 1011
- * 1020
- * 1101
- * 1110
- * 1200
- * 2001
- * 2010
- * 2100
- * 3000
- * 3000
- * 2100
- * 2010
- */
