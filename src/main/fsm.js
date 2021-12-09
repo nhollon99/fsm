@@ -143,9 +143,18 @@ function resetCaret() {
 }
 
 var canvas;
+var canvas2;
 var nodeRadius = 30;
 var nodes = [];
 var links = [];
+
+var graphNodes = []
+graphNodes.push([])
+graphNodes.push([])
+var graphLinks = []
+graphLinks.push([])
+graphLinks.push([])
+var tabNumber = 0
 
 var cursorVisible = true;
 var snapToPadding = 6; // pixels
@@ -163,6 +172,7 @@ var colors = ['purple','gold', 'blue'];
 // 'drawing'
 // 'coinfiring'
 var mode = 'drawing';
+var canvasId = 'canvas';
 
 //allowed modes:
 // 'firing'
@@ -375,7 +385,7 @@ function incrementNode(node, amount) {
 }
 
 function drawUsing(c) {
-	c.clearRect(0, 0, canvas.width, canvas.height);
+	c.clearRect(0, 0, document.getElementById(canvasId).width, document.getElementById(canvasId).height);
 	c.save();
 	c.translate(0.5, 0.5);
 	let col = 0;
@@ -411,7 +421,7 @@ function drawUsing(c) {
 }
 
 function draw() {
-	drawUsing(canvas.getContext('2d'));
+	drawUsing(document.getElementById(canvasId).getContext('2d'));
 	saveBackup();
 }
 
@@ -586,7 +596,7 @@ window.onload = function() {
 	function(){
 		var element = document.getElementById('coinfiring');
 		element.checked = false;
-		localStorage['fsm'] = '';
+		localStorage['fsm'] = ''
 		location.reload();
 	};
 
@@ -677,12 +687,41 @@ window.onload = function() {
 		}
 		
 	}
+
+	document.getElementById('tab1').onclick = () => {
+		canvasId = 'canvas'
+		document.getElementById('canvas').style.display = 'block'
+		document.getElementById('canvas2').style.display = 'none'
+		if (tabNumber != 0) {
+			graphNodes[tabNumber] = nodes
+			graphLinks[tabNumber] = links
+			tabNumber = 0
+			nodes = graphNodes[tabNumber]
+			links = graphLinks[tabNumber]
+		}
+		draw()
+	}
+
+	document.getElementById('tab2').onclick = () => {
+		canvasId = 'canvas2'
+		document.getElementById('canvas').style.display = 'none'
+		document.getElementById('canvas2').style.display = 'block'
+		if (tabNumber != 1) {
+			graphNodes[tabNumber] = nodes
+			graphLinks[tabNumber] = links
+			tabNumber = 1
+			nodes = graphNodes[tabNumber]
+			links = graphLinks[tabNumber]
+		}
+		draw()
+	}
 	
 	updateMode();
 
 	canvas = document.getElementById('canvas');
+	canvas2 = document.getElementById('canvas2')
 	restoreBackup();
-	draw();
+	draw()
 
 	canvas.onmousedown = function(e) {
 		var mouse = crossBrowserRelativeMousePos(e);
@@ -813,6 +852,8 @@ window.onload = function() {
 		}
 	};
 
+	canvas2.onmousedown = canvas.onmousedown
+
 	canvas.ondblclick = function(e) {
 		var mouse = crossBrowserRelativeMousePos(e);
 
@@ -829,6 +870,8 @@ window.onload = function() {
 			}
 		}
 	};
+
+	canvas2.ondblclick = canvas.ondblclick
 
 
 	canvas.onmousemove = function(e) {
@@ -865,6 +908,8 @@ window.onload = function() {
 		}
 	};
 
+	canvas2.onmousemove = canvas.onmousemove
+
 	canvas.onmouseup = function(e) {
 		movingObject = false;
 
@@ -878,6 +923,8 @@ window.onload = function() {
 			draw();
 		}
 	};
+
+	canvas2.onmouseup = canvas.onmouseup
 }
 
 var shift = false;
@@ -991,9 +1038,9 @@ function output(text, showInput) {
 function saveAsPNG() {
 	var oldSelectedObject = selectedObject;
 	selectedObject = null;
-	drawUsing(canvas.getContext('2d'));
+	drawUsing(document.getElementById(canvasId).getContext('2d'));
 	selectedObject = oldSelectedObject;
-	var pngData = canvas.toDataURL('image/png');
+	var pngData = document.getElementById(canvasId).toDataURL('image/png');
 	document.location.href = pngData;
 }
 

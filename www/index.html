@@ -170,15 +170,23 @@ if (typeof btoa == 'undefined') {
 			<button id="drawCompleteBipartite" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Complete Bipartite Graph
 		</div>
 		<div class="center" style="margin-top: 5px; margin-bottom: 0px;">
-			<button id="clearNodes" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear all Nodes</button>
-			<button id="clearCanvas" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear the Canvas</button>
+			<button id="clearNodes" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear All Nodes</button>
+			<button id="clearCanvas" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear All Graphs</button>
 		</div>
 	</div>
-
 	
-	<canvas id="canvas" width="800" height="600">
-		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
-	</canvas>
+	<div>
+		<div class="center">
+			<button id="tab1"> Graph 1 </button>
+			<button id="tab2"> Graph 2 </button>
+		</div>
+		<canvas id="canvas" style="display: block;" width="800" height="600">
+			<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
+		</canvas>
+		<canvas id="canvas2" style="display: none;" width="800" height="600">
+			<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
+		</canvas>
+	</div>
 	
 
 
