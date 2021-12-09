@@ -7,8 +7,10 @@ async function runQReduce(node) {
         resetScript()
     }
 
+    colors = ["purple", "gold", "blue"];
+
     await debtToQ(buildDistanceArray(node));
-    //debtToQ(buildDistanceArray(node));
+    
     qReduce(node);
 }
 
@@ -71,7 +73,7 @@ async function debtToQ(distArr) {
                         fireSet(distArr[j]);
                         shift = false
                     }
-                    await waitDraw(500);
+                    await waitDraw(750);
                     
                 }
             } else {
@@ -87,17 +89,16 @@ async function debtToQ(distArr) {
         }
         index--;
     }
-    emptyChipBags();
+    
     if (document.getElementById('visualize').checked) {
         await waitDraw(1000);
     }
-    return new Promise(resolve => {
-        setTimeout(() => {
-          resolve(1);
-        }, 1);
-    });
+
+    emptyChipBags();
 }
 
+/* Will draw, then wait @ms milliseconds, 
+ */
 function waitDraw(ms) {
     draw();
     return new Promise(resolve => {
@@ -107,6 +108,8 @@ function waitDraw(ms) {
     });
 }
 
+/* Will wait for 'ms' milliseconds but not draw
+ */
 function wait(ms) {
     return new Promise(resolve => {
         setTimeout(() => {
@@ -115,12 +118,6 @@ function wait(ms) {
     });
 }
 
-
-
-
-function evalTrue() {
-    return true
-}
 
 async function qReduce(node) {
     if (document.getElementById('visualize').checked) {

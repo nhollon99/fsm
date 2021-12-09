@@ -9,9 +9,6 @@ function greedy(quiet = true){
     } else {
         resetScript()
     }
-
-    const graph = makeAdjList(); //calls array that pairs edges and vertices
-
     const borrowed = []; //to keep track of the nodes we've borrowed at
     let winning = false; 
 
@@ -52,33 +49,40 @@ async function drawGreedy() {
         resetScript()
     }
 
-    const borrowed = []; //to keep track of the nodes we've borrowed at
+    let borrowed = new Set(); //to keep track of the nodes we've borrowed at
     let winning = false; 
 
     
     //keep looping through until your divisor is out of debt or you've borrowed at every vertex
-    while(borrowed.length !== nodes.length && winning === false){ 
+    while(borrowed.size !== nodes.length && winning === false){ 
         for (node in nodes) {
+            if (borrowed.size === nodes.length) {
+                break
+            }
+
             let chip = parseInt(nodes[node]['text']);
             if (chip < 0)   {
                 // We want the node we're borrowing at to be its own set
+
+                // Runs greey while drawing
                 chipBags = [];
                 chipBags.push(new Set());
                 for (neighbor of graph[node]) {
-                    console.log(neighbor);
                     chipBags[0].add(nodes[neighbor]);
                 }
                 chipBags.push(new Set());
                 chipBags[0].add(nodes[node]);
                 chipBags[1].add(nodes[node]);
-                colors[0] = "gold"
-                colors[1] = "purple"
-                console.log(chipBags[0])
+                colors[0] = "gold";
+                colors[1] = "purple";
                 await waitDraw(500);
                 fireNode(nodes[node], true);
                 await waitDraw(500);
-                if(borrowed.indexOf(nodes[node]) === -1) { //checking to see if the node you're borrowing at is already in the array
-                    borrowed.push(nodes[node]); //if its not, add it
+
+
+                // Helps with ending conditions
+                if(borrowed.has(nodes[node]) === false) { //checking to see if the node you're borrowing at is already in the array
+                    borrowed.add(nodes[node]); //if its not, add it
                 }
             }
         };
@@ -91,6 +95,11 @@ async function drawGreedy() {
     
     shift = false;
     chipBags = [];
+
+    if(borrowed.size == nodes.length){
+        alert("So sorry, your graph is unwinnable :(")
+    }
+
     //return new Promise((resolve, reject) => {
     //    resolve(winning);
     //})
