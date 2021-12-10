@@ -57,14 +57,23 @@ function playGonalityGame(divisor) {
         nodes[node]['text'] = `${divisor[node]}`;
     }
 
-    for (node of nodes) {
+
+    for (let node of nodes) {
         if (eval(node['text']) == 0) {
-            node['text'] = '-1';
+            node['text'] = `-1`;
+
             // if any are false, we need 
             // to continue somehow
-            if (greedy(quiet = false) == false) {
+            let g = greedy(quiet = false)
+            if (g == false) {
                 return false;
             }
+
+            // Reset the divisor. 
+            for (let nodeRes in nodes) {
+                nodes[nodeRes]['text'] = `${divisor[nodeRes]}`;
+            }
+
         }
     }
     console.log(`Winning divisor: ${divisor}`);
