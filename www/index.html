@@ -55,6 +55,13 @@ p {
 	margin: auto;
 }
 
+.button {
+	margin: 0px; 
+	border: none; 
+	background-color: white; 
+	border-radius: 5px 5px 5px 5px;
+}
+
 textarea {
 	display: none;
 	width: 75%;
@@ -175,15 +182,19 @@ if (typeof btoa == 'undefined') {
 		</div>
 	</div>
 	
-	<div>
-		<div class="center">
-			<button id="tab1"> Graph 1 </button>
-			<button id="tab2"> Graph 2 </button>
+	<div id='graphTabs'>
+		<div id='tabNavigation' class="center" style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 5px; margin-bottom: 5px;">
+			<div id='tabs' style="margin: 0px; display: flex; flex-wrap: wrap;">
+				<div id="tabButton1" style="display: flex; margin: 5px;">
+					<button id="tab1" style="margin: 0px; border: none; background-color: white; border-radius: 5px 0px 0px 5px;"> Graph 1 </button>
+					<button id="deleteTab1" style="margin: 0px; border: none; background-color: white; border-radius: 0px 5px 5px 0px;"> &#x2715 </button>
+				</div>
+			</div>
+			<div id='addTabs' style="margin: 5px;">
+				<button id="addTab" class="button"> Add Tab </button>
+			</div>
 		</div>
-		<canvas id="canvas" style="display: block;" width="800" height="600">
-			<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
-		</canvas>
-		<canvas id="canvas2" style="display: none;" width="800" height="600">
+		<canvas id="canvas1" style="display: block;" width="800" height="600">
 			<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
 		</canvas>
 	</div>

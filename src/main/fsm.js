@@ -142,19 +142,16 @@ function resetCaret() {
 	caretVisible = true;
 }
 
-var canvas;
-var canvas2;
 var nodeRadius = 30;
 var nodes = [];
 var links = [];
 
 var graphNodes = []
 graphNodes.push([])
-graphNodes.push([])
 var graphLinks = []
 graphLinks.push([])
-graphLinks.push([])
 var tabNumber = 0
+var numTabs = 1
 
 var cursorVisible = true;
 var snapToPadding = 6; // pixels
@@ -172,7 +169,7 @@ var colors = ['purple','gold', 'blue'];
 // 'drawing'
 // 'coinfiring'
 var mode = 'drawing';
-var canvasId = 'canvas';
+var canvasId = 'canvas1';
 
 //allowed modes:
 // 'firing'
@@ -230,6 +227,280 @@ function linkInSet(link) {
 		}
 	}
 	return ret;
+}
+
+function canvasOnMouseDown(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+	if (mode === 'drawing') {
+		selectedObject = selectObject(mouse.x, mouse.y);
+		movingObject = false;
+		originalClick = mouse;
+		if(selectedObject != null) {
+			if(shift && selectedObject instanceof Node) {
+				currentLink = new SelfLink(selectedObject, mouse, checkDirected());
+			} else {
+				movingObject = true;
+				deltaMouseX = deltaMouseY = 0;
+				if(selectedObject.setMouseStart) {
+					selectedObject.setMouseStart(mouse.x, mouse.y);
+				}
+			}
+			resetCaret();
+		} else if(shift) {
+			currentLink = new TemporaryLink(mouse, mouse, checkDirected());
+		}
+	}
+	else if (mode === 'coinfiring') {
+		if (coinfiringMode === 'firing') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					let isRecording = document.getElementById('record').checked;
+					if (firingSet.has(currentObject)) {
+						firingSet.forEach(node => {
+							fireNode(node, isRecording);
+						})
+						firingSet = new Set();
+					} else {
+						fireNode(currentObject, isRecording);
+					}
+				}
+			}
+		} else if (coinfiringMode === 'dhars') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					// need to find this node in local storage to get it's number
+					let dharsStart = 0;
+					for (let i = 0; i < nodes.length; i++) {
+						if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
+							dharsStart = i;
+						}
+					}
+					const dharsNums = dhars(dharsStart);
+
+					document.getElementById('setFire').click();
+
+					chipBags = [];
+					chipBags.push(dharsNums);
+					
+				}
+			}
+		} else if (coinfiringMode === 'setAdd') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					if (chipBags[0].has(currentObject)) {
+						chipBags[0].delete(currentObject);
+					} else {
+						chipBags[0].add(currentObject);
+					}
+				}
+			}
+
+		} else if (coinfiringMode === 'setFire') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					// So, we need to find all nodes in the same
+					// set as this node, and fire all of them.
+					let sets = findAllSets(currentObject);
+					let isRecording = document.getElementById('record').checked;
+					for (set of sets) {
+						fireSet(set)
+					}
+
+					if (sets.length === 0) {
+						fireNode(currentObject, isRecording);
+					}
+				}
+			}
+
+		} else if (coinfiringMode === 'setCreate') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					// We need to either create a new set, or add to a recently
+					// created set. Seems pretty straightforward to just 
+					// create a mode, setAdd
+
+					chipBags.push(new Set());
+					chipBags[0].add(currentObject);
+
+					// Hidden mode;
+					coinfiringMode = 'setAdd';
+				}
+			}
+		} else if (coinfiringMode === 'qReduce') {
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					// If we have a node, q-reduce it!
+					runQReduce(currentObject);
+				}
+			}
+		}
+
+		
+		
+	}
+
+	draw();
+
+	if(canvasHasFocus()) {
+		// disable drag-and-drop only if the canvas is already focused
+		return false;
+	} else {
+		// otherwise, let the browser switch the focus away from wherever it was
+		resetCaret();
+		return true;
+	}
+}
+
+function canvasOnDblClick(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+		if (mode === 'drawing') {
+			selectedObject = selectObject(mouse.x, mouse.y);
+			if(selectedObject == null) {
+				selectedObject = new Node(mouse.x, mouse.y);
+				nodes.push(selectedObject);
+				nodes[nodes.length-1].label = nodes.length;
+				nodes[nodes.length-1].text = '0';
+				script.push(0);
+				resetCaret();
+				draw();
+			}
+		}
+}
+
+function canvasOnMouseMove(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+		if(currentLink != null) {
+			var targetNode = selectObject(mouse.x, mouse.y);
+			if(!(targetNode instanceof Node)) {
+				targetNode = null;
+			}
+
+			if(selectedObject == null) {
+				if(targetNode != null) {
+					currentLink = new StartLink(targetNode, originalClick, checkDirected());
+				} else {
+					currentLink = new TemporaryLink(originalClick, mouse, checkDirected());
+				}
+			} else {
+				if(targetNode != null) {
+					currentLink = new Link(selectedObject, targetNode, checkDirected(), getLinkNumber(selectedObject, targetNode));
+				} else {
+					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
+				}
+			}
+			draw();
+		}
+
+		if(movingObject) {
+			selectedObject.setAnchorPoint(mouse.x, mouse.y);
+			if(selectedObject instanceof Node) {
+				snapNode(selectedObject);
+			}
+			draw();
+		}
+}
+
+function canvasOnMouseUp(e) {
+	movingObject = false;
+
+		if(currentLink != null) {
+			if(!(currentLink instanceof TemporaryLink)) {
+				selectedObject = currentLink;
+				links.push(currentLink);
+				resetCaret();
+			}
+			currentLink = null;
+			draw();
+		}
+}
+
+function createTabButton(tab) {
+	return `<div id="tabButton${tab}" style="display: flex; margin: 5px;">
+				<button id="tab${tab}" style="margin: 0px; border: none; background-color: white; border-radius: 5px 0px 0px 5px;"> 
+					Graph ${tab} 
+				</button>
+				<button id="deleteTab${tab}" style="margin: 0px; border: none; background-color: white; border-radius: 0px 5px 5px 0px;"> 
+					&#x2715 
+				</button>
+			</div>`
+}
+
+function createCanvas(graphNumber) {
+	return `<canvas id="canvas${graphNumber}" style="display: none;" width="800" height="600">
+				<span class="error">
+					Your browser does not support<br>the HTML5 &lt;canvas&gt; element
+					</span>
+			</canvas>`
+}
+
+function tabDeleteFunction(tab) {
+	numTabs -= 1
+	tabNumber -= 1
+
+}
+
+function tabOnClickFunction(tab) {
+		canvasId = `canvas${tab}`
+		for(let i = 0; i < numTabs; i++) {
+			if (i+1 != tab) {
+				document.getElementById(`canvas${i+1}`).style.display = 'none'
+			}
+		}
+		document.getElementById(canvasId).style.display = 'block'
+		if (tabNumber != tab-1) {
+			graphNodes[tabNumber] = nodes
+			graphLinks[tabNumber] = links
+			tabNumber = tab-1
+			nodes = graphNodes[tabNumber]
+			links = graphLinks[tabNumber]
+		}
+		draw()
+}
+
+function addTab() {
+	let tabDiv = document.getElementById('graphTabs')
+	let tabNavigation = document.getElementById('tabs')
+	numTabs += 1
+	graphNodes.push([])
+	graphLinks.push([])
+	tabNavigation.innerHTML += createTabButton(numTabs)
+	tabDiv.innerHTML += createCanvas(numTabs)
+
+	for (let i = 0; i < numTabs; i++) {
+		document.getElementById(`tab${i+1}`).onclick = () => {
+			tabOnClickFunction(i+1)
+		}
+		let currCanvas = document.getElementById(`canvas${i+1}`)
+		currCanvas.onmousedown = (e) => {
+			canvasOnMouseDown(e)
+		}
+	
+		currCanvas.ondblclick = (e) => {
+			canvasOnDblClick(e)
+		}
+	
+		currCanvas.onmousemove = (e) => {
+			canvasOnMouseMove(e)
+		}
+	
+		currCanvas.onmouseup = (e) => {
+			canvasOnMouseUp(e)
+		}
+	}
+
+	document.getElementById('addTab').onclick = () => {
+		addTab()
+	}
+
 }
 
 function updateMode() {
@@ -506,8 +777,6 @@ function colorDistance(color) {
 	
 }
 
-
-
 function getNodeNum(node) {
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i] === node) {
@@ -688,243 +957,31 @@ window.onload = function() {
 		
 	}
 
-	document.getElementById('tab1').onclick = () => {
-		canvasId = 'canvas'
-		document.getElementById('canvas').style.display = 'block'
-		document.getElementById('canvas2').style.display = 'none'
-		if (tabNumber != 0) {
-			graphNodes[tabNumber] = nodes
-			graphLinks[tabNumber] = links
-			tabNumber = 0
-			nodes = graphNodes[tabNumber]
-			links = graphLinks[tabNumber]
-		}
-		draw()
+	document.getElementById('addTab').onclick = () => {
+		addTab()
 	}
 
-	document.getElementById('tab2').onclick = () => {
-		canvasId = 'canvas2'
-		document.getElementById('canvas').style.display = 'none'
-		document.getElementById('canvas2').style.display = 'block'
-		if (tabNumber != 1) {
-			graphNodes[tabNumber] = nodes
-			graphLinks[tabNumber] = links
-			tabNumber = 1
-			nodes = graphNodes[tabNumber]
-			links = graphLinks[tabNumber]
-		}
-		draw()
-	}
-	
 	updateMode();
 
-	canvas = document.getElementById('canvas');
-	canvas2 = document.getElementById('canvas2')
+	let canvas = document.getElementById('canvas1');
 	restoreBackup();
 	draw()
 
 	canvas.onmousedown = function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if (mode === 'drawing') {
-			selectedObject = selectObject(mouse.x, mouse.y);
-			movingObject = false;
-			originalClick = mouse;
-			if(selectedObject != null) {
-				if(shift && selectedObject instanceof Node) {
-					currentLink = new SelfLink(selectedObject, mouse, checkDirected());
-				} else {
-					movingObject = true;
-					deltaMouseX = deltaMouseY = 0;
-					if(selectedObject.setMouseStart) {
-						selectedObject.setMouseStart(mouse.x, mouse.y);
-					}
-				}
-				resetCaret();
-			} else if(shift) {
-				currentLink = new TemporaryLink(mouse, mouse, checkDirected());
-			}
-		}
-		else if (mode === 'coinfiring') {
-			if (coinfiringMode === 'firing') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						let isRecording = document.getElementById('record').checked;
-						if (firingSet.has(currentObject)) {
-							firingSet.forEach(node => {
-								fireNode(node, isRecording);
-							})
-							firingSet = new Set();
-						} else {
-							fireNode(currentObject, isRecording);
-						}
-					}
-				}
-			} else if (coinfiringMode === 'dhars') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// need to find this node in local storage to get it's number
-						let dharsStart = 0;
-						for (let i = 0; i < nodes.length; i++) {
-							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
-								dharsStart = i;
-							}
-						}
-						const dharsNums = dhars(dharsStart);
-
-						document.getElementById('setFire').click();
-
-						chipBags = [];
-						chipBags.push(dharsNums);
-						
-					}
-				}
-			} else if (coinfiringMode === 'setAdd') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						if (chipBags[0].has(currentObject)) {
-							chipBags[0].delete(currentObject);
-						} else {
-							chipBags[0].add(currentObject);
-						}
-					}
-				}
-
-			} else if (coinfiringMode === 'setFire') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// So, we need to find all nodes in the same
-						// set as this node, and fire all of them.
-						let sets = findAllSets(currentObject);
-						let isRecording = document.getElementById('record').checked;
-						for (set of sets) {
-							fireSet(set)
-						}
-
-						if (sets.length === 0) {
-							fireNode(currentObject, isRecording);
-						}
-					}
-				}
-
-			} else if (coinfiringMode === 'setCreate') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// We need to either create a new set, or add to a recently
-						// created set. Seems pretty straightforward to just 
-						// create a mode, setAdd
-
-						chipBags.push(new Set());
-						chipBags[0].add(currentObject);
-
-						// Hidden mode;
-						coinfiringMode = 'setAdd';
-					}
-				}
-			} else if (coinfiringMode === 'qReduce') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// If we have a node, q-reduce it!
-						runQReduce(currentObject);
-					}
-				}
-			}
-
-			
-			
-		}
-
-		draw();
-
-		if(canvasHasFocus()) {
-			// disable drag-and-drop only if the canvas is already focused
-			return false;
-		} else {
-			// otherwise, let the browser switch the focus away from wherever it was
-			resetCaret();
-			return true;
-		}
-	};
-
-	canvas2.onmousedown = canvas.onmousedown
+		canvasOnMouseDown(e)
+	}
 
 	canvas.ondblclick = function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if (mode === 'drawing') {
-			selectedObject = selectObject(mouse.x, mouse.y);
-			if(selectedObject == null) {
-				selectedObject = new Node(mouse.x, mouse.y);
-				nodes.push(selectedObject);
-				nodes[nodes.length-1].label = nodes.length;
-				nodes[nodes.length-1].text = '0';
-				script.push(0);
-				resetCaret();
-				draw();
-			}
-		}
-	};
-
-	canvas2.ondblclick = canvas.ondblclick
-
+		canvasOnDblClick(e)
+	}
 
 	canvas.onmousemove = function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if(currentLink != null) {
-			var targetNode = selectObject(mouse.x, mouse.y);
-			if(!(targetNode instanceof Node)) {
-				targetNode = null;
-			}
-
-			if(selectedObject == null) {
-				if(targetNode != null) {
-					currentLink = new StartLink(targetNode, originalClick, checkDirected());
-				} else {
-					currentLink = new TemporaryLink(originalClick, mouse, checkDirected());
-				}
-			} else {
-				if(targetNode != null) {
-					currentLink = new Link(selectedObject, targetNode, checkDirected(), getLinkNumber(selectedObject, targetNode));
-				} else {
-					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
-				}
-			}
-			draw();
-		}
-
-		if(movingObject) {
-			selectedObject.setAnchorPoint(mouse.x, mouse.y);
-			if(selectedObject instanceof Node) {
-				snapNode(selectedObject);
-			}
-			draw();
-		}
+		canvasOnMouseMove(e)
 	};
-
-	canvas2.onmousemove = canvas.onmousemove
 
 	canvas.onmouseup = function(e) {
-		movingObject = false;
-
-		if(currentLink != null) {
-			if(!(currentLink instanceof TemporaryLink)) {
-				selectedObject = currentLink;
-				links.push(currentLink);
-				resetCaret();
-			}
-			currentLink = null;
-			draw();
-		}
+		canvasOnMouseUp(e)
 	};
-
-	canvas2.onmouseup = canvas.onmouseup
 }
 
 var shift = false;
