@@ -23,6 +23,9 @@ function gonality(curNode) {
         if (eval) {
             console.log(gonDegree);
             alert(`Gonality of this graph: ${gonDegree}`)
+            resetScript()
+            draw();
+
             return gonDegree;
         }
         gonDegree++;
@@ -31,9 +34,19 @@ function gonality(curNode) {
     // Should never get here
 
     alert(`Gonality of this graph: ${gonDegree}`)
+    resetScript()
+    draw();
     return gonDegree;
 
 }
+
+function zeroAfter(arr, pos) {
+    for (let i = pos; i < arr.length; i++) {
+        arr[i] = 0
+    }
+    return arr
+}
+
 
 function playGonalityGame(divisor) {
 
