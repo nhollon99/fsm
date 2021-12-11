@@ -27,14 +27,6 @@ function rank() {
         }
         rank++;
     }
-
-    // Should never get here
-
-    alert(`Rank of this graph: ${rank - 1}`)
-    resetScript()
-    draw();
-    return rank - 1;
-
 }
 
 
