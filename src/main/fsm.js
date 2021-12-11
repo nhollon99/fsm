@@ -464,10 +464,6 @@ function turnOffChipFiringModes(curMode) {
 	if (curMode !== 'qReduce') {
 		document.getElementById('qReduce').checked = false;
 	}
-	
-	if (curMode !== 'gonality') {
-		document.getElementById('gonality').checked = false;
-	}
 }
 
 function fireNode(node, isRecording) {
@@ -552,6 +548,10 @@ window.onload = function() {
 	}
 	document.getElementById('gonality').onclick = () => {		
 		gonality(nodes[0]);
+	}
+
+	document.getElementById('rank').onclick = () => {		
+		rank();
 	}
 
 	document.getElementById('setDelete').onclick = () => {

@@ -19,7 +19,7 @@ function gonality(curNode) {
         divisor = zeroAfter(divisor, 0);
         console.log(`Clean Divisor ${divisor}`)
         
-        eval = recurseDivisor(divisor, gonDegree, 0)
+        eval = recurseDivisor(divisor, gonDegree, 0, playGonalityGame)
         if (eval) {
             console.log(gonDegree);
             alert(`Gonality of this graph: ${gonDegree}`)
@@ -87,7 +87,7 @@ function playGonalityGame(divisor) {
 }
 
 
-function recurseDivisor(divisor, chips_left, position) {
+function recurseDivisor(divisor, chips_left, position, fnc) {
     let ret = false
     if (chips_left == 0) {
         //console.log(`Pre ${divisor}`)
@@ -96,7 +96,7 @@ function recurseDivisor(divisor, chips_left, position) {
         }
         //console.log(`Post ${divisor}`)
         //divisor[position-1] = 0
-        if (playGonalityGame(divisor)) {
+        if (fnc(divisor)) {
             return true
         }
     } else {
@@ -107,7 +107,7 @@ function recurseDivisor(divisor, chips_left, position) {
 
         for (let i = start; i < chips_left + 1; i++) {
             divisor[position] = i
-            ret = recurseDivisor(divisor, chips_left-i, position + 1)
+            ret = recurseDivisor(divisor, chips_left-i, position + 1, fnc)
             if (ret) {
                 return true
             }
