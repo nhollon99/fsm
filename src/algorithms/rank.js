@@ -19,7 +19,7 @@ function rank() {
         eval = recurseDivisor(divisor, rank, 0, playRankGame)
         if (eval) {
             console.log(rank - 1);
-            alert(`Rank of this graph: ${rank - 1}`)
+            alert(`Rank of this divisor: ${rank - 1}`)
             resetScript()
             draw();
 

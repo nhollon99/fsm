@@ -97,7 +97,7 @@ async function drawGreedy() {
     chipBags = [];
 
     if(borrowed.size == nodes.length){
-        alert("So sorry, your graph is unwinnable :(")
+        alert("So sorry, your divisor is unwinnable :(")
     }
 
     //return new Promise((resolve, reject) => {
