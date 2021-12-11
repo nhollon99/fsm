@@ -4,6 +4,9 @@ function rank() {
     let rank = 0;
 
     for (node in nodes) {
+        if (nodes[node]['text'] == '') {
+            nodes[node]['text'] = '0'
+        }
         divisor.push(0);
     }
 

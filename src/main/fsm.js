@@ -614,10 +614,16 @@ window.onload = function() {
 			}
 		}
 		else if (mode === 'coinfiring') {
-			if (coinfiringMode === 'firing') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
+			// Fix any non-zero Nodes
+			for (node in nodes) {
+				if (nodes[node]['text'] == '') {
+					nodes[node]['text'] = '0'
+				}
+			}
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					if (coinfiringMode === 'firing') {
 						let isRecording = document.getElementById('record').checked;
 						if (firingSet.has(currentObject)) {
 							firingSet.forEach(node => {
@@ -627,12 +633,7 @@ window.onload = function() {
 						} else {
 							fireNode(currentObject, isRecording);
 						}
-					}
-				}
-			} else if (coinfiringMode === 'dhars') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
+					} else if (coinfiringMode === 'dhars') {
 						// need to find this node in local storage to get it's number
 						chipBags = [];
 						let dharsStart = 0;
@@ -645,24 +646,13 @@ window.onload = function() {
 							await drawDhars(dharsStart);
 						}
 						makeBag(dhars(dharsStart));						
-					}
-				}
-			} else if (coinfiringMode === 'setAdd') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
+					} else if (coinfiringMode === 'setAdd') {
 						if (chipBags[0].has(currentObject)) {
 							chipBags[0].delete(currentObject);
 						} else {
 							chipBags[0].add(currentObject);
 						}
-					}
-				}
-
-			} else if (coinfiringMode === 'setFire') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
+					} else if (coinfiringMode === 'setFire') {
 						// So, we need to find all nodes in the same
 						// set as this node, and fire all of them.
 						let sets = findAllSets(currentObject);
@@ -674,28 +664,17 @@ window.onload = function() {
 						if (sets.length === 0) {
 							fireNode(currentObject, isRecording);
 						}
-					}
-				}
 
-			} else if (coinfiringMode === 'setCreate') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// We need to either create a new set, or add to a recently
-						// created set. Seems pretty straightforward to just 
-						// create a mode, setAdd
+					} else if (coinfiringMode === 'setCreate') {
+							// We need to either create a new set, or add to a recently
+							// created set. Seems pretty straightforward to just 
+							// create a mode, setAdd
 
-						chipBags.push(new Set());
-						chipBags[0].add(currentObject);
-
-						// Hidden mode;
-						coinfiringMode = 'setAdd';
-					}
-				}
-			} else if (coinfiringMode === 'setDelete') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
+							chipBags.push(new Set());
+							chipBags[0].add(currentObject);
+							// Hidden mode;
+							coinfiringMode = 'setAdd';
+					} else if (coinfiringMode === 'setDelete') {
 						// Take the current set, and delete the sets:
 						let sets = findAllSets(currentObject);
 						let index = 0;
@@ -703,27 +682,12 @@ window.onload = function() {
 							index = chipBags.indexOf(set);
 							chipBags.splice(index);
 						}
-					}
-				}
-			} else if (coinfiringMode === 'qReduce') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						// If we have a node, q-reduce it!
-						runQReduce(currentObject);
-					}
-				}
-			} else if (coinfiringMode === 'gonality') {
-				var currentObject = selectObject(mouse.x, mouse.y);
-				if (currentObject != null) {
-					if (currentObject instanceof Node) {
-						gonality(currentObject)
-					}
+					} else if (coinfiringMode === 'qReduce') {
+							// If we have a node, q-reduce it!
+							runQReduce(currentObject);
+						}
 				}
 			}
-
-			
-			
 		}
 
 		draw();
