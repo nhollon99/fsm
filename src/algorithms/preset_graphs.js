@@ -60,3 +60,14 @@ function drawCompleteBipartite(n, m) {
     }
     draw()
 }
+
+function drawRalphsFav(n){
+    drawNodes(n)
+    for (let i = nodes.length - n; i < nodes.length - 1; i++){
+        links.push(new Link(nodes[i], nodes[i+1], false, 1))
+    }
+    links.push(new Link(nodes[nodes.length - 1], nodes[nodes.length - n], false, getLinkNumber(nodes[nodes.length - 1], nodes[nodes.length - n])))
+    links.push(new Link(nodes[1], nodes[2], false, getLinkNumber(nodes[1], nodes[2])))
+    links.push(new Link(nodes[1], nodes[3], false, getLinkNumber(nodes[1], nodes[3])))
+    draw()
+}
