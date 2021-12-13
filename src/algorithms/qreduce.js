@@ -75,9 +75,9 @@ function debtToQ(distArr) {
 function qReduce(node) {
     let nodeLabel = node.label - 1;
     let legalFiringSet = new Set()
-    legalFiringSet = dhars(nodeLabel);
+    legalFiringSet = dhars(nodeLabel, 1);
     while (legalFiringSet.size > 0) {
         fireSet(legalFiringSet);
-        legalFiringSet = dhars(nodeLabel);
+        legalFiringSet = dhars(nodeLabel, 1);
     }
 }

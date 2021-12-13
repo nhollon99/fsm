@@ -1,4 +1,4 @@
-function dhars(node) {
+function dhars(node, quiet = 0) {
     const graph = makeAdjList(); //calls array that pairs edges and vertices
     
     let component = buildDistanceArray(nodes[node])
@@ -37,8 +37,10 @@ function dhars(node) {
         ret.add(nodes[num]);
     }
 
-    if(ret.size == 0){
-        alert("So sorry, no legal firing set was found :(")
+    if (!quiet) {
+        if(ret.size == 0){
+            alert("So sorry, no legal firing set was found :(")
+        }
     }
     
     return ret; //returning legal firing set
