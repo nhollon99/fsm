@@ -242,8 +242,7 @@ if (typeof btoa == 'undefined') {
 			<li><b>Greedy Algorithm:</b> Click to run the Greedy algorithm to determine if your divisor is winnable. This attempts to borrow from every vertex and if a winnable divisor is reached first, that is returned, otherwise it signals that the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to run the greedy algorithm.</li>
 			<li><b>Gonality:</b> Click to determine the Gonality of the given graph. Will play the Gonality Game on all possible divisors of degree 1, then degree 2, and so until either the Gonality is determined or the program hits divisors with degree equal to the number of vertices in the graph. Does not preserve current node values.  *WARNING: May take a very long time on large graphs.*</li>
 			<li><b>Rank:</b> Click to determine the rank of the given divisor. This attempts to subtract every possible divisor of degree 1, then degree 2, and so on until it fails. At this point the rank is returned as the previous degree. *WARNING: May take a very long time on large graphs.*</li>
-
-			
+			<li><b>Genus:</b> Click to determine the genus of the given graph. This calculates the number of edges minus the number of vertices plus 1.</li>
 		</ul>
 		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
 	</div>
