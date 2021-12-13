@@ -512,9 +512,12 @@ function updateMode() {
 		chipfiringModes.style.display = 'block';
 		updateFiringMode();
 		selectedObject = null;
+		document.getElementById('drawbuttons').style.display = 'none'
 	} else {
 		chipfiringModes.style.display = 'none';
 		mode = 'drawing';
+		document.getElementById('drawbuttons').style.display = 'block'
+
 	}
 }
 
