@@ -957,6 +957,10 @@ window.onload = function() {
 		
 	}
 
+	document.getElementById('drawRalphsFav').onclick = () => {
+		drawRalphsFav(4)
+	}
+
 	document.getElementById('addTab').onclick = () => {
 		addTab()
 	}
