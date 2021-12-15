@@ -19,7 +19,6 @@ function drawNodes(n, m) {
         for (let i = 0; i < n; i++) {
             node = new Node(Math.floor(400 + (200*Math.cos(2*Math.PI*(i/n)))), Math.floor(300 + (200*Math.sin(2*Math.PI*i/n))))
             node.label = labelStart + i + 1
-            console.log(Math.floor(400 + (200*Math.cos(2*Math.PI*(i/n)))), Math.floor(300 + (200*Math.sin(2*Math.PI*i/n))))
             nodes.push(node)
         }
     }

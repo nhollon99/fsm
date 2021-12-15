@@ -443,9 +443,10 @@ function createCanvas(graphNumber) {
 }
 
 function tabDeleteFunction(tab) {
-	numTabs -= 1
-	tabNumber -= 1
-
+	graphNodes.splice(tab-1, 1)
+	graphLinks.splice(tab-1, 1)
+	saveBackup()
+	location.reload()
 }
 
 function tabOnClickFunction(tab) {
@@ -479,6 +480,9 @@ function addTab() {
 		document.getElementById(`tab${i+1}`).onclick = () => {
 			tabOnClickFunction(i+1)
 		}
+		document.getElementById(`deleteTab${i+1}`).onclick = () => {
+			tabDeleteFunction(i+1)
+		}
 		let currCanvas = document.getElementById(`canvas${i+1}`)
 		currCanvas.onmousedown = (e) => {
 			canvasOnMouseDown(e)
@@ -500,7 +504,46 @@ function addTab() {
 	document.getElementById('addTab').onclick = () => {
 		addTab()
 	}
+	draw()
 
+}
+
+function loadExistingTab() {
+	let tabDiv = document.getElementById('graphTabs')
+	let tabNavigation = document.getElementById('tabs')
+	numTabs += 1
+	tabNavigation.innerHTML += createTabButton(numTabs)
+	tabDiv.innerHTML += createCanvas(numTabs)
+
+	for (let i = 0; i < numTabs; i++) {
+		document.getElementById(`tab${i+1}`).onclick = () => {
+			tabOnClickFunction(i+1)
+		}
+		document.getElementById(`deleteTab${i+1}`).onclick = () => {
+			tabDeleteFunction(i+1)
+		}
+		let currCanvas = document.getElementById(`canvas${i+1}`)
+		currCanvas.onmousedown = (e) => {
+			canvasOnMouseDown(e)
+		}
+	
+		currCanvas.ondblclick = (e) => {
+			canvasOnDblClick(e)
+		}
+	
+		currCanvas.onmousemove = (e) => {
+			canvasOnMouseMove(e)
+		}
+	
+		currCanvas.onmouseup = (e) => {
+			canvasOnMouseUp(e)
+		}
+	}
+
+	document.getElementById('addTab').onclick = () => {
+		addTab()
+	}
+	draw()
 }
 
 function updateMode() {
@@ -972,6 +1015,9 @@ window.onload = function() {
 
 	let canvas = document.getElementById('canvas1');
 	restoreBackup();
+	while(numTabs != graphNodes.length) {
+		loadExistingTab()
+	}
 	draw()
 
 	canvas.onmousedown = function(e) {

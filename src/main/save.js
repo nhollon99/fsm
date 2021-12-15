@@ -6,6 +6,11 @@ function restoreBackup() {
 	try {
 		var backup = JSON.parse(localStorage['fsm']);
 
+		while (graphNodes.length != backup.length) {
+			graphNodes.push([])
+			graphLinks.push([])
+		}
+
 		for (var j = 0; j < backup.length; j++) {
 			for(var i = 0; i < backup[j].nodes.length; i++) {
 				var backupNode = backup[j].nodes[i];
