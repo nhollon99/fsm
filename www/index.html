@@ -1,6 +1,6 @@
 <!doctype html>
 <html><head>
-	<title>Graph / Finite State Machine Designer</title>
+	<title>Chip Firing Interface</title>
   <meta charset="utf-8">
 	<style>
 
@@ -154,7 +154,7 @@ if (typeof btoa == 'undefined') {
 
 	</script>
 </head><body>
-	<h1>Graph / Finite State Machine Designer</h1>
+	<h1>Chip Firing Interface</h1>
     <div class="center" style="margin-bottom: 5px;">
 		<input type="checkbox" id="directed"> Directed Edges
 		<input type="checkbox" id="coinfiring"> Chip Firing Mode
@@ -165,9 +165,14 @@ if (typeof btoa == 'undefined') {
 			<input type="checkbox" id="firing"> Firing
 			<input type="checkbox" id="setCreate"> Set Create
 			<input type="checkbox" id="setFire"> Set Firing
+      <input type="checkbox" id="visualize"> Visualize
+			<input type="checkbox" id="coinAudio"> Coin Audio
 			<input type="checkbox" id="record"> Record Firing Script <br/>
 			<input type="text" id="firingscript" readonly class="centerelement">
 			<button id="greedy" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Greedy Algorithm 
+      <button id="gonality" style="margin-top: 5px"> Gonality
+			<button id="rank" style="margin-top: 5px"> Rank
+			<button id="genus" style="margin-top: 5px"> Genus
 			<button id="setClear" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Clear Firing Set
 		</div>
 		<div class="center" style="margin-top: 5px; margin-bottom: 0px;" id="drawbuttons">
@@ -206,7 +211,7 @@ if (typeof btoa == 'undefined') {
 		<p class="center">Export as: <a href="javascript:saveAsJSON()">JSON</a> | <a href="javascript:saveAsPNG()">PNG</a> | <a href="javascript:saveAsSVG()">SVG</a> | <a href="javascript:saveAsLaTeX()">LaTeX</a> | Import from: <a href="javascript:loadFromJSON()">JSON</a> </p>
 		<textarea id="output"></textarea>
 		<p class="center"><button id="importButton" hidden>Import</button></p>
-		<p>The big white box above is the FSM designer. You can add tabs to have multiple canvases and draw multiple graphs at once. &nbsp; Here's how to use the canvas:</p>
+		<p>The big white box above is the chip-firing interface.&nbsp; Here's how to use it:</p>
 		<ul>
 			<li><b>Add a vertex:</b> double-click on the canvas</li>
 			<li><b>Add an edge:</b> shift-drag on the canvas</li>

@@ -164,6 +164,7 @@ var originalClick;
 var firingSet = new Set();
 var script = [];
 var chipBags = [];
+var visualize = false;
 var colors = ['purple','gold', 'blue'];
 // allowed modes:
 // 'drawing'
@@ -182,169 +183,105 @@ var canvasId = 'canvas1';
 // 'greedy'
 let coinfiringMode = 'fire';
 
-/*
- * Takes in a node, and checks if it is 
- * in any set current stored. If it is, 
- * then we return the number of the set it is in.
- * If the node is in multiple sets, 
- * returns the total number of sets, indicating 
- * Overlap. 
- */
-function isInSet(node) {
-	let ret = -1;
-	for (set in chipBags) {
-		if (chipBags[set].has(node)) {
-			if (ret < chipBags.length) {
-				ret = set;
-			} else {
-				ret = chipBags.length;
-			}
-		}
-	}
-
-	return ret;
-}
-
-function findAllSets(node) {
-	let ret = [];
-	for (set in chipBags) {
-		if (chipBags[set].has(node)) {
-			ret.push(chipBags[set]);
-		}
-	}
-	return ret;
-}
-
-function linkInSet(link) {
-	let ret = -1;
-	for (set in chipBags) {
-		if ((chipBags[set].has(link['nodeA'])) && (chipBags[set].has(link['nodeB']))) {
-			if (ret < chipBags.length) {
-				ret = set;
-			} else {
-				ret = chipBags.length;
-			}
-		}
-	}
-	return ret;
-}
 
 function canvasOnMouseDown(e) {
 	var mouse = crossBrowserRelativeMousePos(e);
 
 	if (mode === 'drawing') {
-		selectedObject = selectObject(mouse.x, mouse.y);
-		movingObject = false;
-		originalClick = mouse;
-		if(selectedObject != null) {
-			if(shift && selectedObject instanceof Node) {
-				currentLink = new SelfLink(selectedObject, mouse, checkDirected());
-			} else {
-				movingObject = true;
-				deltaMouseX = deltaMouseY = 0;
-				if(selectedObject.setMouseStart) {
-					selectedObject.setMouseStart(mouse.x, mouse.y);
+		  selectedObject = selectObject(mouse.x, mouse.y);
+			movingObject = false;
+			originalClick = mouse;
+			if(selectedObject != null) {
+				if(shift && selectedObject instanceof Node) {
+					currentLink = new SelfLink(selectedObject, mouse, checkDirected());
+				} else {
+					movingObject = true;
+					deltaMouseX = deltaMouseY = 0;
+					if(selectedObject.setMouseStart) {
+						selectedObject.setMouseStart(mouse.x, mouse.y);
+					}
 				}
+				resetCaret();
+			} else if(shift) {
+				currentLink = new TemporaryLink(mouse, mouse, checkDirected());
 			}
-			resetCaret();
-		} else if(shift) {
-			currentLink = new TemporaryLink(mouse, mouse, checkDirected());
-		}
 	}
 	else if (mode === 'coinfiring') {
-		if (coinfiringMode === 'firing') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					let isRecording = document.getElementById('record').checked;
-					if (firingSet.has(currentObject)) {
-						firingSet.forEach(node => {
-							fireNode(node, isRecording);
-						})
-						firingSet = new Set();
-					} else {
-						fireNode(currentObject, isRecording);
-					}
+			// Fix any non-zero Nodes
+			for (node in nodes) {
+				if (nodes[node]['text'] == '') {
+					nodes[node]['text'] = '0'
 				}
 			}
-		} else if (coinfiringMode === 'dhars') {
 			var currentObject = selectObject(mouse.x, mouse.y);
 			if (currentObject != null) {
 				if (currentObject instanceof Node) {
-					// need to find this node in local storage to get it's number
-					let dharsStart = 0;
-					for (let i = 0; i < nodes.length; i++) {
-						if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
-							dharsStart = i;
+					if (coinfiringMode === 'firing') {
+						let isRecording = document.getElementById('record').checked;
+						if (firingSet.has(currentObject)) {
+							firingSet.forEach(node => {
+								fireNode(node, isRecording);
+							})
+							firingSet = new Set();
+						} else {
+							fireNode(currentObject, isRecording);
 						}
-					}
-					const dharsNums = dhars(dharsStart);
+					} else if (coinfiringMode === 'dhars') {
+						// need to find this node in local storage to get it's number
+						chipBags = [];
+						let dharsStart = 0;
+						for (let i = 0; i < nodes.length; i++) {
+							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
+								dharsStart = i;
+							}
+						}
+						if (document.getElementById('visualize').checked) {
+							await drawDhars(dharsStart);
+						}
+						makeBag(dhars(dharsStart));						
+					} else if (coinfiringMode === 'setAdd') {
+						if (chipBags[0].has(currentObject)) {
+							chipBags[0].delete(currentObject);
+						} else {
+							chipBags[0].add(currentObject);
+						}
+					} else if (coinfiringMode === 'setFire') {
+						// So, we need to find all nodes in the same
+						// set as this node, and fire all of them.
+						let sets = findAllSets(currentObject);
+						let isRecording = document.getElementById('record').checked;
+						for (set of sets) {
+							fireSet(set)
+						}
 
-					document.getElementById('setFire').click();
+						if (sets.length === 0) {
+							fireNode(currentObject, isRecording);
+						}
 
-					chipBags = [];
-					chipBags.push(dharsNums);
-					
+					} else if (coinfiringMode === 'setCreate') {
+							// We need to either create a new set, or add to a recently
+							// created set. Seems pretty straightforward to just 
+							// create a mode, setAdd
+
+							chipBags.push(new Set());
+							chipBags[0].add(currentObject);
+							// Hidden mode;
+							coinfiringMode = 'setAdd';
+					} else if (coinfiringMode === 'setDelete') {
+						// Take the current set, and delete the sets:
+						let sets = findAllSets(currentObject);
+						let index = 0;
+						for (set of sets) {
+							index = chipBags.indexOf(set);
+							chipBags.splice(index);
+						}
+					} else if (coinfiringMode === 'qReduce') {
+							// If we have a node, q-reduce it!
+							runQReduce(currentObject);
+						}
 				}
 			}
-		} else if (coinfiringMode === 'setAdd') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					if (chipBags[0].has(currentObject)) {
-						chipBags[0].delete(currentObject);
-					} else {
-						chipBags[0].add(currentObject);
-					}
-				}
-			}
-
-		} else if (coinfiringMode === 'setFire') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					// So, we need to find all nodes in the same
-					// set as this node, and fire all of them.
-					let sets = findAllSets(currentObject);
-					let isRecording = document.getElementById('record').checked;
-					for (set of sets) {
-						fireSet(set)
-					}
-
-					if (sets.length === 0) {
-						fireNode(currentObject, isRecording);
-					}
-				}
-			}
-
-		} else if (coinfiringMode === 'setCreate') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					// We need to either create a new set, or add to a recently
-					// created set. Seems pretty straightforward to just 
-					// create a mode, setAdd
-
-					chipBags.push(new Set());
-					chipBags[0].add(currentObject);
-
-					// Hidden mode;
-					coinfiringMode = 'setAdd';
-				}
-			}
-		} else if (coinfiringMode === 'qReduce') {
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					// If we have a node, q-reduce it!
-					runQReduce(currentObject);
-				}
-			}
-		}
-
-		
-		
-	}
+  }
 
 	draw();
 
@@ -576,6 +513,7 @@ function updateFiringMode() {
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
 	let qReduce = document.getElementById('qReduce');
+	let gonality = document.getElementById('gonality');
 	if (dhars.checked) {
 		coinfiringMode = 'dhars';
 		selectedObject = null;
@@ -587,6 +525,9 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else if (qReduce.checked) {
 		coinfiringMode = 'qReduce';
+		selectedObject = null;
+	} else if (gonality.checked) {
+		coinfiringMode = 'gonality';
 		selectedObject = null;
 	} else {
 		coinfiringMode = 'firing';
@@ -720,8 +661,17 @@ function drawUsing(c) {
 		col = isInSet(nodes[i])
 		if ((chipBags.length > 0) && col > -1) {
 			c.fillStyle = c.strokeStyle = colors[col];
-			c.lineWidth = 5;
+			if (colors[col] == "black") {
+				c.lineWidth = 1;
+			} else {
+				c.lineWidth = 5;
+			}
 		}
+
+		if (nodes[i]['label'] == undefined) {
+			nodes[i]['label'] = i + 1;
+		}
+
 		nodes[i].draw(c);
 	}
 
@@ -731,7 +681,11 @@ function drawUsing(c) {
 		col = linkInSet(links[i])
 		if ((chipBags.length > 0) && (col > -1)) {
 			c.fillStyle = c.strokeStyle = colors[col];
-			c.lineWidth = 3;
+			if (colors[col] == "black") {
+				c.lineWidth = 1;
+			} else {
+				c.lineWidth = 3;
+			}
 		}
 		links[i].draw(c);
 	}
@@ -874,11 +828,12 @@ function turnOffChipFiringModes(curMode) {
 }
 
 function fireNode(node, isRecording) {
-	//audioObj = new Audio("https://www.fesliyanstudios.com/play-mp3/6236");
-	//audioObj.addEventListener("canplay", event => {
-	//	/* the audio is now playable; play it if permissions allow */
-	//	audioObj.play();
-	//  });
+	if (document.getElementById('coinAudio').checked === true) {
+		audioObj = new Audio("https://www.fesliyanstudios.com/play-mp3/6236");
+		audioObj.addEventListener("canplay", event => {
+			audioObj.play();
+		});
+	}
 	if (isRecording) {
 		updateScript(node, !shift);
 	}
@@ -905,13 +860,6 @@ function fireNode(node, isRecording) {
 	incrementNode(node, -chipsToFireAway * modifier)
 }
 
-function fireSet(firingSet) {
-	let isRecording = document.getElementById('record').checked
-	for (node of firingSet) {
-		fireNode(node, isRecording)
-	}
-}
-
 window.onload = function() {
 
 	document.getElementById("clearCanvas").onclick = 
@@ -922,19 +870,23 @@ window.onload = function() {
 		links = []
 		graphNodes[tabNumber] = []
 		graphLinks[tabNumber] = []
+    chipBags = []
 		draw()
 	};
 
 	document.getElementById("clearNodes").onclick = function() {
 		for(var i = 0; i < nodes.length; i++) {
-			nodes[i].text = '';
+			nodes[i].text = '0';
 		}
 		draw();
 	};
 
-	document.getElementById('importButton').onclick = function() {
+	document.getElementById('importButton').onclick = async function() {
 		var element = document.getElementById('output');
+		console.log(element.value)
 		localStorage['fsm'] = element.value;
+		// Ok, fsm is now a string
+		console.log(localStorage['fsm'])
 		location.reload();
 	};
 
@@ -948,8 +900,26 @@ window.onload = function() {
 		updateFiringMode();
 	}
 
-	document.getElementById('greedy').onclick = () => {		
-		greedy();
+	document.getElementById('greedy').onclick = async function() {
+		console.log("inthis function?")
+		if (document.getElementById('visualize').checked) {
+			drawGreedy();
+		} else {
+			greedy();
+		}
+
+		draw();
+	}
+	document.getElementById('gonality').onclick = () => {		
+		gonality(nodes[0]);
+	}
+
+	document.getElementById('rank').onclick = () => {		
+		rank();
+	}
+
+	document.getElementById('genus').onclick = () => {		
+		genus();
 	}
 
 	document.getElementById('setClear').onclick = () => {		

@@ -1,4 +1,4 @@
-function runQReduce(node) {
+async function runQReduce(node) {
     //click record script automatically
     let record = document.getElementById('record')
     if (!record.checked) {
@@ -7,8 +7,10 @@ function runQReduce(node) {
         resetScript()
     }
 
-    debtToQ(buildDistanceArray(node));
-    draw();
+    colors = ["purple", "gold", "blue"];
+
+    await debtToQ(buildDistanceArray(node));
+    
     qReduce(node);
 }
 
@@ -52,32 +54,91 @@ function buildDistanceArray(node) {
  * corresponds to the distance of nodes in the set from a unique vertex 
  * q), and sends all the debt of the graph to q. Returns nothing. 
  */
-function debtToQ(distArr) {
+async function debtToQ(distArr) {
     // Iterate backwards borrowing until each set of nodes
     // a distance *index* from Q is 
+    if (document.getElementById('visualize').checked) {
+        chipBags = setsToBags(distArr);
+        await waitDraw(1000);
+    }
     let index = distArr.length - 1;
     let curNode = 0;
     while (index >= 0) {
         for (node of distArr[index]) {
             curNode = node;
-            while (eval(curNode['text'].valueOf()) < 0) {
-                for (j = index; j < distArr.length; j++) {
-                    shift = true
-                    fireSet(distArr[j]);
-                    shift = false
+            if (document.getElementById('visualize').checked) {
+                while (eval(curNode['text'].valueOf()) < 0) {
+                    for (j = index; j < distArr.length; j++) {
+                        shift = true
+                        fireSet(distArr[j]);
+                        shift = false
+                    }
+                    await waitDraw(750);
+                    
+                }
+            } else {
+                while (eval(curNode['text'].valueOf()) < 0) {
+                    for (j = index; j < distArr.length; j++) {
+                        shift = true
+                        fireSet(distArr[j]);
+                        shift = false
+                    }
+                    
                 }
             }
         }
         index--;
     }
+    
+    if (document.getElementById('visualize').checked) {
+        await waitDraw(1000);
+    }
+
+    emptyChipBags();
 }
 
-function qReduce(node) {
+/* Will draw, then wait @ms milliseconds, 
+ */
+function waitDraw(ms) {
+    draw();
+    return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(ms);
+        }, ms);
+    });
+}
+
+/* Will wait for 'ms' milliseconds but not draw
+ */
+function wait(ms) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(ms);
+        }, ms);
+    });
+}
+
+
+async function qReduce(node) {
+    if (document.getElementById('visualize').checked) {
+        await waitDraw();
+    }
     let nodeLabel = node.label - 1;
     let legalFiringSet = new Set()
     legalFiringSet = dhars(nodeLabel, 1);
-    while (legalFiringSet.size > 0) {
-        fireSet(legalFiringSet);
-        legalFiringSet = dhars(nodeLabel, 1);
+    if (document.getElementById('visualize').checked) {
+        while (legalFiringSet.size > 0) {
+            await waitDraw(1000);
+            fireSet(legalFiringSet);
+            legalFiringSet = dhars(nodeLabel, 1);
+        }
+    } else {
+        while (legalFiringSet.size > 0) {
+            fireSet(legalFiringSet);
+            legalFiringSet = dhars(nodeLabel, 1);
+        }
     }
+    emptyChipBags();
+    draw();
+    
 }
