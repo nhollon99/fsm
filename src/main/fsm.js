@@ -554,6 +554,10 @@ window.onload = function() {
 		rank();
 	}
 
+	document.getElementById('genus').onclick = () => {		
+		genus();
+	}
+
 	document.getElementById('setDelete').onclick = () => {
 		turnOffChipFiringModes('setDelete');
 		updateFiringMode();
