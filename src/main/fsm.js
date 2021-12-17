@@ -454,8 +454,12 @@ function tabOnClickFunction(tab) {
 		for(let i = 0; i < numTabs; i++) {
 			if (i+1 != tab) {
 				document.getElementById(`canvas${i+1}`).style.display = 'none'
+				document.getElementById(`tab${i+1}`).style.backgroundColor = 'white'
+				document.getElementById(`deleteTab${i+1}`).style.backgroundColor = 'white'
 			}
 		}
+		document.getElementById(`tab${tab}`).style.backgroundColor = '#B2B2B2'
+		document.getElementById(`deleteTab${tab}`).style.backgroundColor = '#B2B2B2'
 		document.getElementById(canvasId).style.display = 'block'
 		if (tabNumber != tab-1) {
 			graphNodes[tabNumber] = nodes
@@ -464,6 +468,7 @@ function tabOnClickFunction(tab) {
 			nodes = graphNodes[tabNumber]
 			links = graphLinks[tabNumber]
 		}
+		console.log(tabNumber)
 		draw()
 }
 
@@ -504,8 +509,10 @@ function addTab() {
 	document.getElementById('addTab').onclick = () => {
 		addTab()
 	}
-	draw()
 
+	document.getElementById(`tab${numTabs}`).click()
+
+	draw()
 }
 
 function loadExistingTab() {
@@ -911,8 +918,11 @@ window.onload = function() {
 	function(){
 		var element = document.getElementById('coinfiring');
 		element.checked = false;
-		localStorage['fsm'] = ''
-		location.reload();
+		nodes = []
+		links = []
+		graphNodes[tabNumber] = []
+		graphLinks[tabNumber] = []
+		draw()
 	};
 
 	document.getElementById("clearNodes").onclick = function() {
