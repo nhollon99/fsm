@@ -184,7 +184,7 @@ var canvasId = 'canvas1';
 let coinfiringMode = 'fire';
 
 
-function canvasOnMouseDown(e) {
+async function canvasOnMouseDown(e) {
 	var mouse = crossBrowserRelativeMousePos(e);
 
 	if (mode === 'drawing') {
@@ -426,7 +426,7 @@ function addTab() {
 			tabDeleteFunction(i+1)
 		}
 		let currCanvas = document.getElementById(`canvas${i+1}`)
-		currCanvas.onmousedown = (e) => {
+		currCanvas.onmousedown = async (e) => {
 			canvasOnMouseDown(e)
 		}
 	
@@ -467,7 +467,7 @@ function loadExistingTab() {
 			tabDeleteFunction(i+1)
 		}
 		let currCanvas = document.getElementById(`canvas${i+1}`)
-		currCanvas.onmousedown = (e) => {
+		currCanvas.onmousedown = async (e) => {
 			canvasOnMouseDown(e)
 		}
 	
@@ -1000,7 +1000,7 @@ window.onload = function() {
 	}
 	draw()
 
-	canvas.onmousedown = function(e) {
+	canvas.onmousedown = async function(e) {
 		canvasOnMouseDown(e)
 	}
 
