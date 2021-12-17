@@ -1,11 +1,5 @@
 function makeAdjList() { 
-    let fsmJSONObj = JSON.parse(localStorage['fsm']); // stored as a JSON string in local browser
-
-    // Take the fsm, get the nodes and edges
-    // Build adj list, 
-    let links = fsmJSONObj['links'];
-    let nodes = fsmJSONObj['nodes'];
-    
+    // Take the fsm, get the nodes and edges    
     let ret = []; //initializing the adjacency list we'll return to represent the graph
 
     // Make ret save the same length as 
@@ -18,10 +12,10 @@ function makeAdjList() {
     links.forEach(link => {
         // TODO: Add weighted edges (for loop over text)
         // TODO: Add support for directed edges
-        ret[link['nodeA']].push(link['nodeB']);
+        ret[link.nodeA.label - 1].push(link.nodeB.label - 1);
 
         // Undirected, add edge from both verts
-        ret[link['nodeB']].push(link['nodeA']);
+        ret[link.nodeB.label - 1].push(link.nodeA.label - 1);
     })
 
     return ret;

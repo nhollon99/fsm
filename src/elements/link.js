@@ -1,4 +1,4 @@
-function Link(a, b, directed) {
+function Link(a, b, directed, linkNumber) {
 	this.nodeA = a;
 	this.nodeB = b;
 	this.text = '';
@@ -7,8 +7,13 @@ function Link(a, b, directed) {
 	this.directed = directed;
 
 	// make anchor point relative to the locations of nodeA and nodeB
-	this.parallelPart = 0.5; // percentage from nodeA to nodeB
-	this.perpendicularPart = 0; // pixels from line between nodeA and nodeB
+	if (linkNumber==1) {
+		this.parallelPart = 0.5; // percentage from nodeA to nodeB
+		this.perpendicularPart = 0; // pixels from line between nodeA and nodeB
+	} else  {
+		this.parallelPart = 0.5 + .03*(linkNumber-1); // percentage from nodeA to nodeB
+		this.perpendicularPart = 10*(linkNumber-1); // pixels from line between nodeA and nodeB
+	}
 }
 
 Link.prototype.getAnchorPoint = function() {

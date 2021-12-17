@@ -9,6 +9,19 @@ function checkDirected() {
 };
 
 
+/*
+Gets the link number to render parallel edges separately
+*/
+function getLinkNumber(nodeA, nodeB) {
+	let linkNumber = 1
+	for (link of links) {
+		if ((link.nodeA == nodeA && link.nodeB == nodeB) || (link.nodeB == nodeA && link.nodeA == nodeB)) {
+			linkNumber += 1
+		}
+	}
+	return linkNumber
+}
+
 function convertLatexShortcuts(text) {
 	// html greek characters
 	for(var i = 0; i < greekLetterNames.length; i++) {
@@ -129,10 +142,16 @@ function resetCaret() {
 	caretVisible = true;
 }
 
-var canvas;
 var nodeRadius = 30;
 var nodes = [];
 var links = [];
+
+var graphNodes = []
+graphNodes.push([])
+var graphLinks = []
+graphLinks.push([])
+var tabNumber = 0
+var numTabs = 1
 
 var cursorVisible = true;
 var snapToPadding = 6; // pixels
@@ -151,6 +170,7 @@ var colors = ['purple','gold', 'blue'];
 // 'drawing'
 // 'coinfiring'
 var mode = 'drawing';
+var canvasId = 'canvas1';
 
 //allowed modes:
 // 'firing'
@@ -158,12 +178,317 @@ var mode = 'drawing';
 // 'setCreate'
 // 'setFire'
 // 'setAdd' -- Hidden Mode
-// 'setDelete'
+// 'setClear'
 // 'qReduce'
-// TODO: 'greedy'
-// TODO: 'qReduce'
+// 'greedy'
 let coinfiringMode = 'fire';
 
+
+function canvasOnMouseDown(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+	if (mode === 'drawing') {
+		  selectedObject = selectObject(mouse.x, mouse.y);
+			movingObject = false;
+			originalClick = mouse;
+			if(selectedObject != null) {
+				if(shift && selectedObject instanceof Node) {
+					currentLink = new SelfLink(selectedObject, mouse, checkDirected());
+				} else {
+					movingObject = true;
+					deltaMouseX = deltaMouseY = 0;
+					if(selectedObject.setMouseStart) {
+						selectedObject.setMouseStart(mouse.x, mouse.y);
+					}
+				}
+				resetCaret();
+			} else if(shift) {
+				currentLink = new TemporaryLink(mouse, mouse, checkDirected());
+			}
+	}
+	else if (mode === 'coinfiring') {
+			// Fix any non-zero Nodes
+			for (node in nodes) {
+				if (nodes[node]['text'] == '') {
+					nodes[node]['text'] = '0'
+				}
+			}
+			var currentObject = selectObject(mouse.x, mouse.y);
+			if (currentObject != null) {
+				if (currentObject instanceof Node) {
+					if (coinfiringMode === 'firing') {
+						let isRecording = document.getElementById('record').checked;
+						if (firingSet.has(currentObject)) {
+							firingSet.forEach(node => {
+								fireNode(node, isRecording);
+							})
+							firingSet = new Set();
+						} else {
+							fireNode(currentObject, isRecording);
+						}
+					} else if (coinfiringMode === 'dhars') {
+						// need to find this node in local storage to get it's number
+						chipBags = [];
+						let dharsStart = 0;
+						for (let i = 0; i < nodes.length; i++) {
+							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
+								dharsStart = i;
+							}
+						}
+						if (document.getElementById('visualize').checked) {
+							await drawDhars(dharsStart);
+						}
+						makeBag(dhars(dharsStart));						
+					} else if (coinfiringMode === 'setAdd') {
+						if (chipBags[0].has(currentObject)) {
+							chipBags[0].delete(currentObject);
+						} else {
+							chipBags[0].add(currentObject);
+						}
+					} else if (coinfiringMode === 'setFire') {
+						// So, we need to find all nodes in the same
+						// set as this node, and fire all of them.
+						let sets = findAllSets(currentObject);
+						let isRecording = document.getElementById('record').checked;
+						for (set of sets) {
+							fireSet(set)
+						}
+
+						if (sets.length === 0) {
+							fireNode(currentObject, isRecording);
+						}
+
+					} else if (coinfiringMode === 'setCreate') {
+							// We need to either create a new set, or add to a recently
+							// created set. Seems pretty straightforward to just 
+							// create a mode, setAdd
+
+							chipBags.push(new Set());
+							chipBags[0].add(currentObject);
+							// Hidden mode;
+							coinfiringMode = 'setAdd';
+					} else if (coinfiringMode === 'setDelete') {
+						// Take the current set, and delete the sets:
+						let sets = findAllSets(currentObject);
+						let index = 0;
+						for (set of sets) {
+							index = chipBags.indexOf(set);
+							chipBags.splice(index);
+						}
+					} else if (coinfiringMode === 'qReduce') {
+							// If we have a node, q-reduce it!
+							runQReduce(currentObject);
+						}
+				}
+			}
+  }
+
+	draw();
+
+	if(canvasHasFocus()) {
+		// disable drag-and-drop only if the canvas is already focused
+		return false;
+	} else {
+		// otherwise, let the browser switch the focus away from wherever it was
+		resetCaret();
+		return true;
+	}
+}
+
+function canvasOnDblClick(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+		if (mode === 'drawing') {
+			selectedObject = selectObject(mouse.x, mouse.y);
+			if(selectedObject == null) {
+				selectedObject = new Node(mouse.x, mouse.y);
+				nodes.push(selectedObject);
+				nodes[nodes.length-1].label = nodes.length;
+				nodes[nodes.length-1].text = '0';
+				script.push(0);
+				resetCaret();
+				draw();
+			}
+		}
+}
+
+function canvasOnMouseMove(e) {
+	var mouse = crossBrowserRelativeMousePos(e);
+
+		if(currentLink != null) {
+			var targetNode = selectObject(mouse.x, mouse.y);
+			if(!(targetNode instanceof Node)) {
+				targetNode = null;
+			}
+
+			if(selectedObject == null) {
+				if(targetNode != null) {
+					currentLink = new StartLink(targetNode, originalClick, checkDirected());
+				} else {
+					currentLink = new TemporaryLink(originalClick, mouse, checkDirected());
+				}
+			} else {
+				if(targetNode != null) {
+					currentLink = new Link(selectedObject, targetNode, checkDirected(), getLinkNumber(selectedObject, targetNode));
+				} else {
+					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
+				}
+			}
+			draw();
+		}
+
+		if(movingObject) {
+			selectedObject.setAnchorPoint(mouse.x, mouse.y);
+			if(selectedObject instanceof Node) {
+				snapNode(selectedObject);
+			}
+			draw();
+		}
+}
+
+function canvasOnMouseUp(e) {
+	movingObject = false;
+
+		if(currentLink != null) {
+			if(!(currentLink instanceof TemporaryLink)) {
+				selectedObject = currentLink;
+				links.push(currentLink);
+				resetCaret();
+			}
+			currentLink = null;
+			draw();
+		}
+}
+
+function createTabButton(tab) {
+	return `<div id="tabButton${tab}" style="display: flex; margin: 5px;">
+				<button id="tab${tab}" style="margin: 0px; border: none; background-color: white; border-radius: 5px 0px 0px 5px;"> 
+					Graph ${tab} 
+				</button>
+				<button id="deleteTab${tab}" style="margin: 0px; border: none; background-color: white; border-radius: 0px 5px 5px 0px;"> 
+					&#x2715 
+				</button>
+			</div>`
+}
+
+function createCanvas(graphNumber) {
+	return `<canvas id="canvas${graphNumber}" style="display: none;" width="800" height="600">
+				<span class="error">
+					Your browser does not support<br>the HTML5 &lt;canvas&gt; element
+					</span>
+			</canvas>`
+}
+
+function tabDeleteFunction(tab) {
+	graphNodes.splice(tab-1, 1)
+	graphLinks.splice(tab-1, 1)
+	saveBackup()
+	location.reload()
+}
+
+function tabOnClickFunction(tab) {
+		canvasId = `canvas${tab}`
+		for(let i = 0; i < numTabs; i++) {
+			if (i+1 != tab) {
+				document.getElementById(`canvas${i+1}`).style.display = 'none'
+				document.getElementById(`tab${i+1}`).style.backgroundColor = 'white'
+				document.getElementById(`deleteTab${i+1}`).style.backgroundColor = 'white'
+			}
+		}
+		document.getElementById(`tab${tab}`).style.backgroundColor = '#B2B2B2'
+		document.getElementById(`deleteTab${tab}`).style.backgroundColor = '#B2B2B2'
+		document.getElementById(canvasId).style.display = 'block'
+		if (tabNumber != tab-1) {
+			graphNodes[tabNumber] = nodes
+			graphLinks[tabNumber] = links
+			tabNumber = tab-1
+			nodes = graphNodes[tabNumber]
+			links = graphLinks[tabNumber]
+		}
+		console.log(tabNumber)
+		draw()
+}
+
+function addTab() {
+	let tabDiv = document.getElementById('graphTabs')
+	let tabNavigation = document.getElementById('tabs')
+	numTabs += 1
+	graphNodes.push([])
+	graphLinks.push([])
+	tabNavigation.innerHTML += createTabButton(numTabs)
+	tabDiv.innerHTML += createCanvas(numTabs)
+
+	for (let i = 0; i < numTabs; i++) {
+		document.getElementById(`tab${i+1}`).onclick = () => {
+			tabOnClickFunction(i+1)
+		}
+		document.getElementById(`deleteTab${i+1}`).onclick = () => {
+			tabDeleteFunction(i+1)
+		}
+		let currCanvas = document.getElementById(`canvas${i+1}`)
+		currCanvas.onmousedown = (e) => {
+			canvasOnMouseDown(e)
+		}
+	
+		currCanvas.ondblclick = (e) => {
+			canvasOnDblClick(e)
+		}
+	
+		currCanvas.onmousemove = (e) => {
+			canvasOnMouseMove(e)
+		}
+	
+		currCanvas.onmouseup = (e) => {
+			canvasOnMouseUp(e)
+		}
+	}
+
+	document.getElementById('addTab').onclick = () => {
+		addTab()
+	}
+
+	document.getElementById(`tab${numTabs}`).click()
+
+	draw()
+}
+
+function loadExistingTab() {
+	let tabDiv = document.getElementById('graphTabs')
+	let tabNavigation = document.getElementById('tabs')
+	numTabs += 1
+	tabNavigation.innerHTML += createTabButton(numTabs)
+	tabDiv.innerHTML += createCanvas(numTabs)
+
+	for (let i = 0; i < numTabs; i++) {
+		document.getElementById(`tab${i+1}`).onclick = () => {
+			tabOnClickFunction(i+1)
+		}
+		document.getElementById(`deleteTab${i+1}`).onclick = () => {
+			tabDeleteFunction(i+1)
+		}
+		let currCanvas = document.getElementById(`canvas${i+1}`)
+		currCanvas.onmousedown = (e) => {
+			canvasOnMouseDown(e)
+		}
+	
+		currCanvas.ondblclick = (e) => {
+			canvasOnDblClick(e)
+		}
+	
+		currCanvas.onmousemove = (e) => {
+			canvasOnMouseMove(e)
+		}
+	
+		currCanvas.onmouseup = (e) => {
+			canvasOnMouseUp(e)
+		}
+	}
+
+	document.getElementById('addTab').onclick = () => {
+		addTab()
+	}
+	draw()
+}
 
 function updateMode() {
 	var element = document.getElementById('coinfiring');
@@ -174,9 +499,12 @@ function updateMode() {
 		chipfiringModes.style.display = 'block';
 		updateFiringMode();
 		selectedObject = null;
+		document.getElementById('drawbuttons').style.display = 'none'
 	} else {
 		chipfiringModes.style.display = 'none';
 		mode = 'drawing';
+		document.getElementById('drawbuttons').style.display = 'block'
+
 	}
 }
 
@@ -184,7 +512,6 @@ function updateFiringMode() {
 	let dhars = document.getElementById('dhars');
 	let set = document.getElementById('setCreate');
 	let setFire = document.getElementById('setFire');
-	let setDelete = document.getElementById('setDelete');
 	let qReduce = document.getElementById('qReduce');
 	let gonality = document.getElementById('gonality');
 	if (dhars.checked) {
@@ -195,9 +522,6 @@ function updateFiringMode() {
 		selectedObject = null;
 	} else if (setFire.checked) {
 		coinfiringMode = 'setFire';
-		selectedObject = null;
-	} else if (setDelete.checked) {
-		coinfiringMode = 'setDelete';
 		selectedObject = null;
 	} else if (qReduce.checked) {
 		coinfiringMode = 'qReduce';
@@ -326,7 +650,7 @@ function incrementNode(node, amount) {
 }
 
 function drawUsing(c) {
-	c.clearRect(0, 0, canvas.width, canvas.height);
+	c.clearRect(0, 0, document.getElementById(canvasId).width, document.getElementById(canvasId).height);
 	c.save();
 	c.translate(0.5, 0.5);
 	let col = 0;
@@ -375,7 +699,7 @@ function drawUsing(c) {
 }
 
 function draw() {
-	drawUsing(canvas.getContext('2d'));
+	drawUsing(document.getElementById(canvasId).getContext('2d'));
 	saveBackup();
 }
 
@@ -417,7 +741,48 @@ function snapNode(node) {
 	}
 }
 
+function getRandomColor() {
+	// We can just generate a random hex number
+	do {
+		ret = '#';
+		for (i = 0; i < 3; i++) {
+			ret += Math.ceil(Math.random()*256).toString(16);
+		}
+	} while (colorDistance(ret) <= 1);
+	return ret;
+}
 
+function hexStrToNum(color) {
+	let colorArr = [];
+	let val = '';
+	for (i = 1; i < 7; i+=2) {
+		val = '';
+		val += color.charAt(i);
+		val += color.charAt(i+1);
+		colorArr.push(Number(val));
+	}
+	return colorArr;
+}
+
+function colorDistance(color) {
+	// Color is in hex, so we convert
+	let minDist = Infinity;
+	let dist = 0;
+	let colorArr = hexStrToNum(color);
+
+	// Now we need to go through all colors and check distance
+	let compColor = [];
+	for (j = 2; j < (colors.length - 1); j+= 1) {
+		compColor = hexStrToNum(colors[j]);
+		dist = Math.sqrt((colorArr[0] - compColor[0]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2 + (colorArr[1] - compColor[1]) ^ 2);
+		if (minDist > dist) {
+			minDist = dist;
+		}
+	}
+	return minDist;
+
+	
+}
 
 function getNodeNum(node) {
 	for (let i = 0; i < nodes.length; i++) {
@@ -455,10 +820,6 @@ function turnOffChipFiringModes(curMode) {
 
 	if (curMode !== 'setFire') {
 		document.getElementById('setFire').checked = false;
-	}
-
-	if (curMode !== 'setDelete') {
-		document.getElementById('setDelete').checked = false;
 	}
 
 	if (curMode !== 'qReduce') {
@@ -505,9 +866,12 @@ window.onload = function() {
 	function(){
 		var element = document.getElementById('coinfiring');
 		element.checked = false;
-		chipBags = [];
-		localStorage['fsm'] = '';
-		location.reload();
+		nodes = []
+		links = []
+		graphNodes[tabNumber] = []
+		graphLinks[tabNumber] = []
+    chipBags = []
+		draw()
 	};
 
 	document.getElementById("clearNodes").onclick = function() {
@@ -558,9 +922,8 @@ window.onload = function() {
 		genus();
 	}
 
-	document.getElementById('setDelete').onclick = () => {
-		turnOffChipFiringModes('setDelete');
-		updateFiringMode();
+	document.getElementById('setClear').onclick = () => {		
+		chipBags = [];
 	}
 	
 	document.getElementById('setCreate').onclick = () => {
@@ -589,187 +952,68 @@ window.onload = function() {
 		displayRecord();
 	}
 
+	document.getElementById('drawPath').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawPath(parseInt(n))
+		}
+	}
+
+
+	document.getElementById('drawCycle').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawCycle(parseInt(n))
+		}
+	}
+
+	document.getElementById('drawComplete').onclick = () => {
+		let n = prompt("Number of vertices")
+		if (n != null) {
+			drawComplete(parseInt(n))
+		}
+	}
+
+	document.getElementById('drawCompleteBipartite').onclick = () => {
+		let n = prompt("Number of vertices in first part")
+		let m = prompt("Number of vertices in second part")
+		if (n != null) {
+			drawCompleteBipartite(parseInt(n), parseInt(m))
+		}
+		
+	}
+
+	document.getElementById('drawRalphsFav').onclick = () => {
+		drawRalphsFav(4)
+	}
+
+	document.getElementById('addTab').onclick = () => {
+		addTab()
+	}
+
 	updateMode();
 
-	canvas = document.getElementById('canvas');
+	let canvas = document.getElementById('canvas1');
 	restoreBackup();
-	draw();
+	while(numTabs != graphNodes.length) {
+		loadExistingTab()
+	}
+	draw()
 
-	canvas.onmousedown = async function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if (mode === 'drawing') {
-			selectedObject = selectObject(mouse.x, mouse.y);
-			movingObject = false;
-			originalClick = mouse;
-			if(selectedObject != null) {
-				if(shift && selectedObject instanceof Node) {
-					currentLink = new SelfLink(selectedObject, mouse, checkDirected());
-				} else {
-					movingObject = true;
-					deltaMouseX = deltaMouseY = 0;
-					if(selectedObject.setMouseStart) {
-						selectedObject.setMouseStart(mouse.x, mouse.y);
-					}
-				}
-				resetCaret();
-			} else if(shift) {
-				currentLink = new TemporaryLink(mouse, mouse, checkDirected());
-			}
-		}
-		else if (mode === 'coinfiring') {
-			// Fix any non-zero Nodes
-			for (node in nodes) {
-				if (nodes[node]['text'] == '') {
-					nodes[node]['text'] = '0'
-				}
-			}
-			var currentObject = selectObject(mouse.x, mouse.y);
-			if (currentObject != null) {
-				if (currentObject instanceof Node) {
-					if (coinfiringMode === 'firing') {
-						let isRecording = document.getElementById('record').checked;
-						if (firingSet.has(currentObject)) {
-							firingSet.forEach(node => {
-								fireNode(node, isRecording);
-							})
-							firingSet = new Set();
-						} else {
-							fireNode(currentObject, isRecording);
-						}
-					} else if (coinfiringMode === 'dhars') {
-						// need to find this node in local storage to get it's number
-						chipBags = [];
-						let dharsStart = 0;
-						for (let i = 0; i < nodes.length; i++) {
-							if (currentObject.containsPoint(nodes[i].x, nodes[i].y)) {
-								dharsStart = i;
-							}
-						}
-						if (document.getElementById('visualize').checked) {
-							await drawDhars(dharsStart);
-						}
-						makeBag(dhars(dharsStart));						
-					} else if (coinfiringMode === 'setAdd') {
-						if (chipBags[0].has(currentObject)) {
-							chipBags[0].delete(currentObject);
-						} else {
-							chipBags[0].add(currentObject);
-						}
-					} else if (coinfiringMode === 'setFire') {
-						// So, we need to find all nodes in the same
-						// set as this node, and fire all of them.
-						let sets = findAllSets(currentObject);
-						let isRecording = document.getElementById('record').checked;
-						for (set of sets) {
-							fireSet(set)
-						}
-
-						if (sets.length === 0) {
-							fireNode(currentObject, isRecording);
-						}
-
-					} else if (coinfiringMode === 'setCreate') {
-							// We need to either create a new set, or add to a recently
-							// created set. Seems pretty straightforward to just 
-							// create a mode, setAdd
-
-							chipBags.push(new Set());
-							chipBags[0].add(currentObject);
-							// Hidden mode;
-							coinfiringMode = 'setAdd';
-					} else if (coinfiringMode === 'setDelete') {
-						// Take the current set, and delete the sets:
-						let sets = findAllSets(currentObject);
-						let index = 0;
-						for (set of sets) {
-							index = chipBags.indexOf(set);
-							chipBags.splice(index);
-						}
-					} else if (coinfiringMode === 'qReduce') {
-							// If we have a node, q-reduce it!
-							runQReduce(currentObject);
-						}
-				}
-			}
-		}
-
-		draw();
-
-		if(canvasHasFocus()) {
-			// disable drag-and-drop only if the canvas is already focused
-			return false;
-		} else {
-			// otherwise, let the browser switch the focus away from wherever it was
-			resetCaret();
-			return true;
-		}
-	};
+	canvas.onmousedown = function(e) {
+		canvasOnMouseDown(e)
+	}
 
 	canvas.ondblclick = function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if (mode === 'drawing') {
-			selectedObject = selectObject(mouse.x, mouse.y);
-			if(selectedObject == null) {
-				selectedObject = new Node(mouse.x, mouse.y);
-				nodes.push(selectedObject);
-				nodes[nodes.length-1].label = nodes.length;
-				nodes[nodes.length-1].text = '0';
-				script.push(0);
-				resetCaret();
-				draw();
-			}
-		}
-	};
-
+		canvasOnDblClick(e)
+	}
 
 	canvas.onmousemove = function(e) {
-		var mouse = crossBrowserRelativeMousePos(e);
-
-		if(currentLink != null) {
-			var targetNode = selectObject(mouse.x, mouse.y);
-			if(!(targetNode instanceof Node)) {
-				targetNode = null;
-			}
-
-			if(selectedObject == null) {
-				if(targetNode != null) {
-					currentLink = new StartLink(targetNode, originalClick, checkDirected());
-				} else {
-					currentLink = new TemporaryLink(originalClick, mouse, checkDirected());
-				}
-			} else {
-				if(targetNode != null) {
-					currentLink = new Link(selectedObject, targetNode, checkDirected());
-				} else {
-					currentLink = new TemporaryLink(selectedObject.closestPointOnCircle(mouse.x, mouse.y), mouse, checkDirected());
-				}
-			}
-			draw();
-		}
-
-		if(movingObject) {
-			selectedObject.setAnchorPoint(mouse.x, mouse.y);
-			if(selectedObject instanceof Node) {
-				snapNode(selectedObject);
-			}
-			draw();
-		}
+		canvasOnMouseMove(e)
 	};
 
 	canvas.onmouseup = function(e) {
-		movingObject = false;
-
-		if(currentLink != null) {
-			if(!(currentLink instanceof TemporaryLink)) {
-				selectedObject = currentLink;
-				links.push(currentLink);
-				resetCaret();
-			}
-			currentLink = null;
-			draw();
-		}
+		canvasOnMouseUp(e)
 	};
 }
 
@@ -884,9 +1128,9 @@ function output(text, showInput) {
 function saveAsPNG() {
 	var oldSelectedObject = selectedObject;
 	selectedObject = null;
-	drawUsing(canvas.getContext('2d'));
+	drawUsing(document.getElementById(canvasId).getContext('2d'));
 	selectedObject = oldSelectedObject;
-	var pngData = canvas.toDataURL('image/png');
+	var pngData = document.getElementById(canvasId).toDataURL('image/png');
 	document.location.href = pngData;
 }
 

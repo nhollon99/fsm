@@ -125,17 +125,17 @@ async function qReduce(node) {
     }
     let nodeLabel = node.label - 1;
     let legalFiringSet = new Set()
-    legalFiringSet = dhars(nodeLabel);
+    legalFiringSet = dhars(nodeLabel, 1);
     if (document.getElementById('visualize').checked) {
         while (legalFiringSet.size > 0) {
             await waitDraw(1000);
             fireSet(legalFiringSet);
-            legalFiringSet = dhars(nodeLabel);
+            legalFiringSet = dhars(nodeLabel, 1);
         }
     } else {
         while (legalFiringSet.size > 0) {
             fireSet(legalFiringSet);
-            legalFiringSet = dhars(nodeLabel);
+            legalFiringSet = dhars(nodeLabel, 1);
         }
     }
     emptyChipBags();

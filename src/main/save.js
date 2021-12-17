@@ -6,37 +6,50 @@ function restoreBackup() {
 	try {
 		var backup = JSON.parse(localStorage['fsm']);
 
-		for(var i = 0; i < backup.nodes.length; i++) {
-			var backupNode = backup.nodes[i];
-			var node = new Node(backupNode.x, backupNode.y);
-			node.isAcceptState = backupNode.isAcceptState;
-			node.text = backupNode.text;
-			node.label = backupNode.label;
-			nodes.push(node);
-			script.push(0);
+		while (graphNodes.length != backup.length) {
+			graphNodes.push([])
+			graphLinks.push([])
 		}
-		for(var i = 0; i < backup.links.length; i++) {
-			var backupLink = backup.links[i];
-			var link = null;
-			var directed = backupLink.directed;
-			if(backupLink.type == 'SelfLink') {
-				link = new SelfLink(nodes[backupLink.node], undefined, directed);
-				link.anchorAngle = backupLink.anchorAngle;
-				link.text = backupLink.text;
-			} else if(backupLink.type == 'StartLink') {
-				link = new StartLink(nodes[backupLink.node], undefined, directed);
-				link.deltaX = backupLink.deltaX;
-				link.deltaY = backupLink.deltaY;
-				link.text = backupLink.text;
-			} else if(backupLink.type == 'Link') {
-				link = new Link(nodes[backupLink.nodeA], nodes[backupLink.nodeB], directed);
-				link.parallelPart = backupLink.parallelPart;
-				link.perpendicularPart = backupLink.perpendicularPart;
-				link.text = backupLink.text;
-				link.lineAngleAdjust = backupLink.lineAngleAdjust;
+
+		for (var j = 0; j < backup.length; j++) {
+			for(var i = 0; i < backup[j].nodes.length; i++) {
+				var backupNode = backup[j].nodes[i];
+				var node = new Node(backupNode.x, backupNode.y);
+				node.isAcceptState = backupNode.isAcceptState;
+				node.text = backupNode.text;
+				node.label = backupNode.label;
+				if (j == 0) {
+					nodes.push(node);
+				}
+				graphNodes[j].push(node)
+				script.push(0);
 			}
-			if(link != null) {
-				links.push(link);
+			for(var i = 0; i < backup[j].links.length; i++) {
+				var backupLink = backup[j].links[i];
+				var link = null;
+				var directed = backupLink.directed;
+				if(backupLink.type == 'SelfLink') {
+					link = new SelfLink(graphNodes[j][backupLink.node], undefined, directed);
+					link.anchorAngle = backupLink.anchorAngle;
+					link.text = backupLink.text;
+				} else if(backupLink.type == 'StartLink') {
+					link = new StartLink(graphNodes[j][backupLink.node], undefined, directed);
+					link.deltaX = backupLink.deltaX;
+					link.deltaY = backupLink.deltaY;
+					link.text = backupLink.text;
+				} else if(backupLink.type == 'Link') {
+					link = new Link(graphNodes[j][backupLink.nodeA], graphNodes[j][backupLink.nodeB], directed);
+					link.parallelPart = backupLink.parallelPart;
+					link.perpendicularPart = backupLink.perpendicularPart;
+					link.text = backupLink.text;
+					link.lineAngleAdjust = backupLink.lineAngleAdjust;
+				}
+				if(link != null) {
+					if (j == 0) {
+						links.push(link);
+					}
+					graphLinks[j].push(link)
+				}
 			}
 		}
 	} catch(e) {
@@ -44,61 +57,73 @@ function restoreBackup() {
 	}
 }
 
-function backupData() {
+function nodeToJSON(node) {
+	return {
+		'x': node.x,
+		'y': node.y,
+		'text': node.text,
+		'isAcceptState': node.isAcceptState,
+		'label': node.label,
+	}
+}
 
-	var backup = {
-		'nodes': [],
-		'links': [],
-	};
-
-	for(var i = 0; i < nodes.length; i++) {
-		var node = nodes[i];
-		var backupNode = {
-			'x': node.x,
-			'y': node.y,
-			'text': node.text,
-			'isAcceptState': node.isAcceptState,
-			'label': node.label,
+function linkToJSON(link, graph) {
+	if(link instanceof SelfLink) {
+		return {
+			'type': 'SelfLink',
+			'node': graphNodes[graph].indexOf(link.node),
+			'text': link.text,
+			'anchorAngle': link.anchorAngle,
+			'directed': link.directed,
 		};
-		backup.nodes.push(backupNode);
+	} else if(link instanceof StartLink) {
+		return {
+			'type': 'StartLink',
+			'node': graphNodes[graph].indexOf(link.node),
+			'text': link.text,
+			'deltaX': link.deltaX,
+			'deltaY': link.deltaY,
+			'directed': link.directed,
+		};
+	} else if(link instanceof Link) {
+		return {
+			'type': 'Link',
+			'nodeA': graphNodes[graph].indexOf(link.nodeA),
+			'nodeB': graphNodes[graph].indexOf(link.nodeB),
+			'text': link.text,
+			'lineAngleAdjust': link.lineAngleAdjust,
+			'parallelPart': link.parallelPart,
+			'perpendicularPart': link.perpendicularPart,
+			'directed': link.directed,
+		};
 	}
-	for(var i = 0; i < links.length; i++) {
-		var link = links[i];
-		var backupLink = null;
-		if(link instanceof SelfLink) {
-			backupLink = {
-				'type': 'SelfLink',
-				'node': nodes.indexOf(link.node),
-				'text': link.text,
-				'anchorAngle': link.anchorAngle,
-				'directed': link.directed,
-			};
-		} else if(link instanceof StartLink) {
-			backupLink = {
-				'type': 'StartLink',
-				'node': nodes.indexOf(link.node),
-				'text': link.text,
-				'deltaX': link.deltaX,
-				'deltaY': link.deltaY,
-				'directed': link.directed,
-			};
-		} else if(link instanceof Link) {
-			backupLink = {
-				'type': 'Link',
-				'nodeA': nodes.indexOf(link.nodeA),
-				'nodeB': nodes.indexOf(link.nodeB),
-				'text': link.text,
-				'lineAngleAdjust': link.lineAngleAdjust,
-				'parallelPart': link.parallelPart,
-				'perpendicularPart': link.perpendicularPart,
-				'directed': link.directed,
-			};
-		}
-		if(backupLink != null) {
-			backup.links.push(backupLink);
-		}
-	}
+}
 
+function backupData() {
+	var backup = []
+
+	for (let j = 0; j < graphNodes.length; j++) {
+		var backupGraph = {
+			'nodes': [],
+			'links': [],
+		}
+
+		let nodesI = graphNodes[j]
+		let linksI = graphLinks[j]
+
+		for(let i = 0; i < nodesI.length; i++) {
+			var node = nodesI[i];
+			var backupNode = nodeToJSON(node)
+			backupGraph.nodes.push(backupNode);
+		}
+
+		for(let i = 0; i < linksI.length; i++) {
+			var link = linksI[i];
+			var backupLink = linkToJSON(link, j)
+			backupGraph.links.push(backupLink);
+		}
+		backup.push(backupGraph)
+	}
 	return backup;
 }
 

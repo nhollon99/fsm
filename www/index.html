@@ -55,6 +55,13 @@ p {
 	margin: auto;
 }
 
+.button {
+	margin: 0px; 
+	border: none; 
+	background-color: white; 
+	border-radius: 5px 5px 5px 5px;
+}
+
 textarea {
 	display: none;
 	width: 75%;
@@ -157,25 +164,49 @@ if (typeof btoa == 'undefined') {
 			<input type="checkbox" id="qReduce"> q Reduce
 			<input type="checkbox" id="firing"> Firing
 			<input type="checkbox" id="setCreate"> Set Create
-			<input type="checkbox" id="setFire"> Set Fire
-			<input type="checkbox" id="setDelete"> Set Delete <br/>
-			<input type="checkbox" id="visualize"> Visualize
+			<input type="checkbox" id="setFire"> Set Firing
+      <input type="checkbox" id="visualize"> Visualize
 			<input type="checkbox" id="coinAudio"> Coin Audio
-			<input type="checkbox" id="record"> Record Firing Script 
-			<input type="text" id="firingscript" readonly class="centerelement"> <br/>
-			<button id="greedy" style="margin-top: 5px"> Greedy Algorithm 
-			<button id="gonality" style="margin-top: 5px"> Gonality
+			<input type="checkbox" id="record"> Record Firing Script <br/>
+			<input type="text" id="firingscript" readonly class="centerelement">
+			<button id="greedy" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Greedy Algorithm 
+      <button id="gonality" style="margin-top: 5px"> Gonality
 			<button id="rank" style="margin-top: 5px"> Rank
 			<button id="genus" style="margin-top: 5px"> Genus
+			<button id="setClear" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Clear Firing Set
+		</div>
+		<div class="center" style="margin-top: 5px; margin-bottom: 0px;" id="drawbuttons">
+			<button id="drawPath" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Path
+			<button id="drawCycle" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Cycle
+			<button id="drawComplete" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Complete Graph
+			<button id="drawCompleteBipartite" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Complete Bipartite Graph
+			<button id="drawRalphsFav" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Draw Ralph's Favorite Graph
 		</div>
 		<div class="center" style="margin-top: 5px; margin-bottom: 0px;">
-			<button id="clearNodes">Clear all Nodes</button>
-			<button id="clearCanvas">Clear the Canvas</button>
+			<button id="clearNodes" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear All Nodes</button>
+			<button id="clearCanvas" class= "button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px">Clear Current Canvas</button>
 		</div>
 	</div>
-	<canvas id="canvas" width="800" height="600">
-		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
-	</canvas>
+	
+	<div id='graphTabs'>
+		<div id='tabNavigation' class="center" style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 5px; margin-bottom: 5px;">
+			<div id='tabs' style="margin: 0px; display: flex; flex-wrap: wrap;">
+				<div id="tabButton1" style="display: flex; margin: 5px;">
+					<button id="tab1" style="margin: 0px; border: none; background-color: #B2B2B2; border-radius: 5px 0px 0px 5px;"> Graph 1 </button>
+					<button id="deleteTab1" style="margin: 0px; border: none; background-color: #B2B2B2; border-radius: 0px 5px 5px 0px;"> &#x2715 </button>
+				</div>
+			</div>
+			<div id='addTabs' style="margin: 5px;">
+				<button id="addTab" class="button"> Add Tab </button>
+			</div>
+		</div>
+		<canvas id="canvas1" style="display: block;" width="800" height="600">
+			<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
+		</canvas>
+	</div>
+	
+
+
 	<div>
 		<p class="center">Export as: <a href="javascript:saveAsJSON()">JSON</a> | <a href="javascript:saveAsPNG()">PNG</a> | <a href="javascript:saveAsSVG()">SVG</a> | <a href="javascript:saveAsLaTeX()">LaTeX</a> | Import from: <a href="javascript:loadFromJSON()">JSON</a> </p>
 		<textarea id="output"></textarea>
@@ -185,18 +216,38 @@ if (typeof btoa == 'undefined') {
 			<li><b>Add a vertex:</b> double-click on the canvas</li>
 			<li><b>Add an edge:</b> shift-drag on the canvas</li>
 			<li><b>Move something:</b> drag it around</li>
-			<li><b>Delete something:</b> click it and press the delete key (not the backspace key)</li>
+			<li><b>Delete something:</b> click it and press the delete key (not the backspace key). On a mac, this is fn+delete.</li>
 		</ul><ul>
 			<li><b>Type numeric subscript:</b> put an underscore before the number (like "S_0")</li>
 			<li><b>Type greek letter:</b> put a backslash before it (like "\beta")</li>
+		</ul>
+		<p>There is also the option to add pre-set graphs instead of drawing your own:</p>
+		<ul>
+			<li><b>Draw Path:</b> Click on this button and enter the number of vertices that you would like to have in the path. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Cycle:</b> Click on this button and enter the number of vertices that you would like to have in the cycle. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Complete:</b> Click on this button and enter the number of vertices that you would like to have in the complete graph. The maximum number of vertices allowed is 15.</li>
+			<li><b>Draw Complete Bipartite:</b> Click on this button and enter the number of vertices that you would like to have on each side of the complete bipartite graph. The maximum number of vertices allowed per side is 8.</li>
+			<li><b>Draw Ralph's Favorite Graph:</b> Click on this button to draw Ralph's favorite critter.</li>
+
 		</ul>
 		<p>This also includes functionality used for simulating chip-firing games. When in chip firing mode, the following happen:</p>
 		<ul>
 			<li>Adding or deleting vertices or edges is disabled</li>
 			<li>Clicking a vertex "fires" that vertex, giving away 1 chip from that vertex to each vertex it connects to</li>
-			<li>Shift clicking undoes the "firing" of that vertex</li>
+			<li><b>Undo:</b> Shift clicking undoes the "firing" of that vertex (performs a borrowing move). </li>
 			<li>Empty vertices are treated as having zero chips on them</li>
 			<li>An edge with a numerical label indicates the "weight" of the edge, causing that many chips to be fired along that edge instead of only one</li>
+			<li><b>Dhar's Burning Algorithm:</b> Click on a vertex to run Dhar’s burning algorithm on that vertex. This determines whether there is a legal firing set to move more chips onto that vertex. The legal firing set is highlighted or a message appears to tell you that there is no legal firing set.</li>
+			<li><b>q-reduce:</b> Click on a vertex. This function moves all debt to that vertex and then performs all possible legal firing moves to arrive at a divisor that is q-reduced. If all debt is eliminated, the divisor is winnable. If there is still debt on q, the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to q-reduce.</li>
+			<li><b>Firing:</b> Fire individual vertices (as described above) by clicking on them.</li>
+			<li><b>Set Create:</b> Click on vertices to group them together in a firing set.</li>
+			<li><b>Set Fire:</b> Click on a created set to remove it as a firing option.</li>
+			<li><b>Clear Firing Set</b> Click on this button to clear the firing set that you created in set create mode.</li>
+			<li><b>Record Firing Script:</b> When this box is checked, the firing/borrowing moves that you perform are recorded. The script is automatically cleared and then recorded when you choose to q-reduce on a vertex or run the greedy algorithm.</li>
+			<li><b>Greedy Algorithm:</b> Click to run the Greedy algorithm to determine if your divisor is winnable. This attempts to borrow from every vertex and if a winnable divisor is reached first, that is returned, otherwise it signals that the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to run the greedy algorithm.</li>
+			<li><b>Gonality:</b> Click to determine the Gonality of the given graph. Will play the Gonality Game on all possible divisors of degree 1, then degree 2, and so until either the Gonality is determined or the program hits divisors with degree equal to the number of vertices in the graph. Does not preserve current node values.  *WARNING: May take a very long time on large graphs.*</li>
+			<li><b>Rank:</b> Click to determine the rank of the given divisor. This attempts to subtract every possible divisor of degree 1, then degree 2, and so on until it fails. At this point the rank is returned as the previous degree. *WARNING: May take a very long time on large graphs.*</li>
+			<li><b>Genus:</b> Click to determine the genus of the given graph. This calculates the number of edges minus the number of vertices plus 1.</li>
 		</ul>
 		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
 	</div>
@@ -206,4 +257,5 @@ if (typeof btoa == 'undefined') {
 	<p>Update by <a href="https://markusfeng.com">Markus Feng</a> in 2019</p>
 	<p>Update by <a href="http://samuelgreen.org/">Samuel Green</a> in 2015</p>
 	<p>Original by <a href="http://madebyevan.com/">Evan Wallace</a> in 2010</p>
+	<p><b>Acknowledgements:</b> Thanks to Ralph Morrison, Yoav Len, Josse van Dobben de Bruyn, Shefali Ramakrishna, Robin Huang, and MATH 435 (2021) for the feedback and suggestions.</p>
 </body></html>
