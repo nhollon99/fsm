@@ -6,6 +6,10 @@ function restoreBackup() {
 	try {
 		var backup = JSON.parse(localStorage['fsm']);
 
+		if (!backup.length) {
+			throw "local storage in wrong format"
+		}
+
 		while (graphNodes.length != backup.length) {
 			graphNodes.push([])
 			graphLinks.push([])
