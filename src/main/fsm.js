@@ -303,6 +303,7 @@ function canvasOnDblClick(e) {
 			if(selectedObject == null) {
 				selectedObject = new Node(mouse.x, mouse.y);
 				nodes.push(selectedObject);
+				graphNodes[tabNumber] = nodes
 				nodes[nodes.length-1].label = nodes.length;
 				nodes[nodes.length-1].text = '0';
 				script.push(0);
@@ -353,6 +354,7 @@ function canvasOnMouseUp(e) {
 			if(!(currentLink instanceof TemporaryLink)) {
 				selectedObject = currentLink;
 				links.push(currentLink);
+				graphLinks[tabNumber] = links
 				resetCaret();
 			}
 			currentLink = null;
@@ -1123,27 +1125,6 @@ function output(text, showInput) {
 	element.style.display = 'block';
 	element.value = text;
 	setInputButtonHidden(!showInput);
-}
-
-function saveAsPNG() {
-	var oldSelectedObject = selectedObject;
-	selectedObject = null;
-	drawUsing(document.getElementById(canvasId).getContext('2d'));
-	selectedObject = oldSelectedObject;
-	var pngData = document.getElementById(canvasId).toDataURL('image/png');
-	document.location.href = pngData;
-}
-
-function saveAsSVG() {
-	var exporter = new ExportAsSVG();
-	var oldSelectedObject = selectedObject;
-	selectedObject = null;
-	drawUsing(exporter);
-	selectedObject = oldSelectedObject;
-	var svgData = exporter.toSVG();
-	output(svgData);
-	// Chrome isn't ready for this yet, the 'Save As' menu item is disabled
-	// document.location.href = 'data:image/svg+xml;base64,' + btoa(svgData);
 }
 
 function saveAsLaTeX() {
