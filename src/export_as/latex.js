@@ -75,7 +75,7 @@ function ExportAsLaTeX() {
 		this._texData += ';\n';
 	};
 	this.measureText = function(text) {
-		var c = canvas.getContext('2d');
+		var c = document.getElementById(canvasId).getContext('2d');
 		c.font = '20px "Times New Romain", serif';
 		return c.measureText(text);
 	};
