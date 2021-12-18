@@ -166,13 +166,13 @@ if (typeof btoa == 'undefined') {
 			<input type="checkbox" id="setCreate"> Set Create
 			<input type="checkbox" id="setFire"> Set Firing
       <input type="checkbox" id="visualize"> Visualize
-			<input type="checkbox" id="coinAudio"> Coin Audio
+			<input type="checkbox" id="coinAudio"> Coin Audio <br/>
 			<input type="checkbox" id="record"> Record Firing Script <br/>
 			<input type="text" id="firingscript" readonly class="centerelement">
 			<button id="greedy" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Greedy Algorithm 
-      <button id="gonality" style="margin-top: 5px"> Gonality
-			<button id="rank" style="margin-top: 5px"> Rank
-			<button id="genus" style="margin-top: 5px"> Genus
+      <button id="gonality" style="margin-top: 5px; margin-left: 2px; margin-right: 2px" class= "button"> Gonality
+			<button id="rank" style="margin-top: 5px; margin-left: 2px; margin-right: 2px" class= "button"> Rank
+			<button id="genus" style="margin-top: 5px; margin-left: 2px; margin-right: 2px" class= "button"> Genus
 			<button id="setClear" class="button" style="margin-top: 5px; margin-left: 2px; margin-right: 2px"> Clear Firing Set
 		</div>
 		<div class="center" style="margin-top: 5px; margin-bottom: 0px;" id="drawbuttons">
@@ -242,7 +242,7 @@ if (typeof btoa == 'undefined') {
 			<li><b>Firing:</b> Fire individual vertices (as described above) by clicking on them.</li>
 			<li><b>Set Create:</b> Click on vertices to group them together in a firing set.</li>
 			<li><b>Set Fire:</b> Click on a created set to remove it as a firing option.</li>
-			<li><b>Clear Firing Set</b> Click on this button to clear the firing set that you created in set create mode.</li>
+			<li><b>Clear Firing Set:</b> Click on this button to clear the firing set that you created in set create mode.</li>
 			<li><b>Record Firing Script:</b> When this box is checked, the firing/borrowing moves that you perform are recorded. The script is automatically cleared and then recorded when you choose to q-reduce on a vertex or run the greedy algorithm.</li>
 			<li><b>Greedy Algorithm:</b> Click to run the Greedy algorithm to determine if your divisor is winnable. This attempts to borrow from every vertex and if a winnable divisor is reached first, that is returned, otherwise it signals that the divisor is unwinnable. The firing script is automatically cleared and then recorded when you choose to run the greedy algorithm.</li>
 			<li><b>Gonality:</b> Click to determine the Gonality of the given graph. Will play the Gonality Game on all possible divisors of degree 1, then degree 2, and so until either the Gonality is determined or the program hits divisors with degree equal to the number of vertices in the graph. Does not preserve current node values.  *WARNING: May take a very long time on large graphs.*</li>

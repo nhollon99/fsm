@@ -15,21 +15,34 @@ function greedy(quiet = true){
     
     //keep looping through until your divisor is out of debt or you've borrowed at every vertex
     while(borrowed.length !== nodes.length && winning === false){ 
+        let i = 0
         nodes.forEach(node => {
             let chip = parseInt(node['text']);
-            if (chip < 0)   {
+            if (chip < 0)   { 
+                while (i < links.length) {
+                    if (node == links[i].nodeA || node == links[i].nodeB) {
+                        break
+                    }
+                    i++
+                }
                 fireNode(node, true);
                 if(borrowed.indexOf(node) == -1) { //checking to see if the node you're borrowing at is already in the array
                     borrowed.push(node); //if its not, add it
                 }
             }
         });
+        if (i == links.length) {
+            if (quiet) {
+                alert("So sorry, your divisor is unwinnable :(")
+            }
+            return false
+        }
         winning = checkWinning(); //checks to see if the divisor is out of debt
     }
 
     //Greedy algorithm has finished so checking if winnable or unwinnable 
     if(borrowed.length == nodes.length && quiet){
-        alert("So sorry, your graph is unwinnable :(")
+        alert("So sorry, your divisor is unwinnable :(")
     }
 
     //stop borrowing
